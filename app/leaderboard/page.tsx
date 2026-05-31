@@ -8,8 +8,11 @@ type Snapshot = {
   rating: number;
   games: number | null;
   recorded_at: string;
+  rapid_rating: number | null;
+  blitz_rating: number | null;
+  bullet_rating: number | null;
+  best_mode: string | null;
 };
-
 function getDateLabel() {
   const now = new Date();
   return `DAY ${now.getDate()} • MONTH OF ${now
@@ -58,6 +61,35 @@ function calculateV2(rows: Snapshot[]) {
       ...todaySnapshots.map((row) => row.games ?? 0)
     );
 
+    const rapidBase = todayBase.rapid_rating ?? 0;
+    const blitzBase = todayBase.blitz_rating ?? 0;
+    const bulletBase = todayBase.bullet_rating ?? 0;
+
+    const highestRapidToday = Math.max(
+      0,
+      ...todaySnapshots.map((row) => row.rapid_rating ?? 0)
+    );
+
+    const highestBlitzToday = Math.max(
+      0,
+      ...todaySnapshots.map((row) => row.blitz_rating ?? 0)
+    );
+
+    const highestBulletToday = Math.max(
+      0,
+      ...todaySnapshots.map((row) => row.bullet_rating ?? 0)
+    );
+
+    const rapidGain = Math.max(0, highestRapidToday - rapidBase);
+    const blitzGain = Math.max(0, highestBlitzToday - blitzBase);
+    const bulletGain = Math.max(0, highestBulletToday - bulletBase);
+
+    const positiveModes = [rapidGain, blitzGain, bulletGain].filter(
+      (gain) => gain > 0
+    ).length;
+
+    const multiStyleTotal = rapidGain + blitzGain + bulletGain;
+
     return {
       username,
       currentRating: latest.rating,
@@ -65,6 +97,11 @@ function calculateV2(rows: Snapshot[]) {
       weeklyGain: latest.rating - weekBase.rating,
       monthlyGain: latest.rating - monthBase.rating,
       gamesToday,
+      rapidGain,
+      blitzGain,
+      bulletGain,
+      positiveModes,
+      multiStyleTotal,
     };
   });
 }
@@ -73,7 +110,7 @@ function calculateV2(rows: Snapshot[]) {
 export default async function LeaderboardPage() {
   const { data: snapshots } = await supabase
     .from("rating_snapshots")
-    .select("username,rating,games,recorded_at")
+    .select("username,rating,games,recorded_at,rapid_rating,blitz_rating,bullet_rating,best_mode")
     .order("recorded_at", { ascending: true });
 
   const { data: legends } = await supabase
@@ -255,4 +292,4 @@ function Rank({
       </div>
     </div>
   );
-}
+} 
