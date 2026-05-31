@@ -85,35 +85,6 @@ function calculateV2(rows: Snapshot[]) {
       ...todaySnapshots.map((row) => row.games ?? 0)
     );
 
-    const rapidBase = todayBase.rapid_rating ?? 0;
-    const blitzBase = todayBase.blitz_rating ?? 0;
-    const bulletBase = todayBase.bullet_rating ?? 0;
-
-    const highestRapidToday = Math.max(
-      0,
-      ...todaySnapshots.map((row) => row.rapid_rating ?? 0)
-    );
-
-    const highestBlitzToday = Math.max(
-      0,
-      ...todaySnapshots.map((row) => row.blitz_rating ?? 0)
-    );
-
-    const highestBulletToday = Math.max(
-      0,
-      ...todaySnapshots.map((row) => row.bullet_rating ?? 0)
-    );
-
-    const rapidGain = Math.max(0, highestRapidToday - rapidBase);
-    const blitzGain = Math.max(0, highestBlitzToday - blitzBase);
-    const bulletGain = Math.max(0, highestBulletToday - bulletBase);
-
-    const positiveModes = [rapidGain, blitzGain, bulletGain].filter(
-      (gain) => gain > 0
-    ).length;
-
-    const multiStyleTotal = rapidGain + blitzGain + bulletGain;
-
     return {
       username,
       currentRating: latest.rating,
@@ -121,11 +92,6 @@ function calculateV2(rows: Snapshot[]) {
       weeklyGain: highestThisWeek - weekBase.rating,
       monthlyGain: highestThisMonth - monthBase.rating,
       gamesToday,
-      rapidGain,
-      blitzGain,
-      bulletGain,
-      positiveModes,
-      multiStyleTotal,
     };
   });
 }
@@ -149,10 +115,6 @@ export default async function LeaderboardPage() {
   const weekly = [...rankings].sort((a, b) => b.weeklyGain - a.weeklyGain);
   const monthly = [...rankings].sort((a, b) => b.monthlyGain - a.monthlyGain);
   const battle = [...rankings].sort((a, b) => b.gamesToday - a.gamesToday);
-
-  const multiStyle = [...rankings]
-    .filter((player) => player.positiveModes >= 2)
-    .sort((a, b) => b.multiStyleTotal - a.multiStyleTotal);
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-black via-[#090303] to-black text-white p-6">
@@ -202,117 +164,32 @@ export default async function LeaderboardPage() {
             <p>⚡ Ascending Hashira — Highest rating gain this week.</p>
             <p>🌙 Demon Moon Ascension — Highest rating gain this month.</p>
             <p>⚔️ Battle Frenzy — Most games played today.</p>
-            <p>⚔️ Multi-Style Slayer — Rating gain in multiple modes today.</p>
           </div>
         </div>
 
-        <Section
-          title="🔥 Growth Hashira"
-          color="orange"
-          desc="The warriors whose flames burned brightest today."
-        >
-          <Rank
-            rank="🥇"
-            name={daily[0]?.username ?? "Awaiting Slayer"}
-            value={`+${daily[0]?.dailyGain ?? 0}`}
-            label="rating today"
-          />
-          <Rank
-            rank="🥈"
-            name={daily[1]?.username ?? "Awaiting Slayer"}
-            value={`+${daily[1]?.dailyGain ?? 0}`}
-            label="rating today"
-          />
-          <Rank
-            rank="🥉"
-            name={daily[2]?.username ?? "Awaiting Slayer"}
-            value={`+${daily[2]?.dailyGain ?? 0}`}
-            label="rating today"
-          />
+        <Section title="🔥 Growth Hashira" color="orange" desc="The warriors whose flames burned brightest today.">
+          <Rank rank="🥇" name={daily[0]?.username ?? "Awaiting Slayer"} value={`+${daily[0]?.dailyGain ?? 0}`} label="rating today" />
+          <Rank rank="🥈" name={daily[1]?.username ?? "Awaiting Slayer"} value={`+${daily[1]?.dailyGain ?? 0}`} label="rating today" />
+          <Rank rank="🥉" name={daily[2]?.username ?? "Awaiting Slayer"} value={`+${daily[2]?.dailyGain ?? 0}`} label="rating today" />
         </Section>
 
-        <Section
-          title="⚡ Ascending Hashira"
-          color="yellow"
-          desc="The relentless slayer whose progress echoed through the week."
-        >
-          <Rank
-            rank="⚡"
-            name={weekly[0]?.username ?? "Awaiting Slayer"}
-            value={`+${weekly[0]?.weeklyGain ?? 0}`}
-            label="weekly gain"
-          />
+        <Section title="⚡ Ascending Hashira" color="yellow" desc="The relentless slayer whose progress echoed through the week.">
+          <Rank rank="⚡" name={weekly[0]?.username ?? "Awaiting Slayer"} value={`+${weekly[0]?.weeklyGain ?? 0}`} label="weekly gain" />
         </Section>
 
-        <Section
-          title="🌙 Demon Moon Ascension"
-          color="purple"
-          desc="The rise that rivaled the Upper Moons themselves."
-        >
-          <Rank
-            rank="🌙"
-            name={monthly[0]?.username ?? "Awaiting Slayer"}
-            value={`+${monthly[0]?.monthlyGain ?? 0}`}
-            label="monthly gain"
-          />
+        <Section title="🌙 Demon Moon Ascension" color="purple" desc="The rise that rivaled the Upper Moons themselves.">
+          <Rank rank="🌙" name={monthly[0]?.username ?? "Awaiting Slayer"} value={`+${monthly[0]?.monthlyGain ?? 0}`} label="monthly gain" />
         </Section>
 
-        <Section
-          title="⚔️ Battle Frenzy"
-          color="cyan"
-          desc="The warrior who fought the most battles today."
-        >
-          <Rank
-            rank="⚔️"
-            name={battle[0]?.username ?? "Awaiting Slayer"}
-            value={`${battle[0]?.gamesToday ?? 0}`}
-            label="games today"
-          />
+        <Section title="⚔️ Battle Frenzy" color="cyan" desc="The warrior who fought the most battles today.">
+          <Rank rank="⚔️" name={battle[0]?.username ?? "Awaiting Slayer"} value={`${battle[0]?.gamesToday ?? 0}`} label="games today" />
         </Section>
-
-        {multiStyle.length > 0 && (
-          <Section
-            title="⚔️ Multi-Style Slayer"
-            color="purple"
-            desc="Warriors who gained rating in multiple chess disciplines today."
-          >
-            {multiStyle.slice(0, 3).map((player, index) => (
-              <div
-                key={player.username}
-                className="border border-white/20 rounded-lg p-4 bg-black/30 mb-3"
-              >
-                <div className="flex justify-between items-center">
-                  <div>
-                    <div className="font-bold text-lg">
-                      {index === 0 ? "🥇" : index === 1 ? "🥈" : "🥉"}{" "}
-                      {player.username}
-                    </div>
-
-                    <div className="text-sm text-zinc-400">
-                      Rapid +{player.rapidGain} • Blitz +{player.blitzGain} •
-                      Bullet +{player.bulletGain}
-                    </div>
-                  </div>
-
-                  <div className="text-right">
-                    <div className="text-green-400 text-xl font-bold">
-                      +{player.multiStyleTotal}
-                    </div>
-
-                    <div className="text-xs text-zinc-500">Total Gain</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </Section>
-        )}
 
         <div className="border border-zinc-700 rounded-xl p-6 mt-6 bg-black/40">
           <h2 className="text-3xl font-bold">🏛 Hall of Legends</h2>
 
           <p className="text-zinc-400 mt-2">
-            Names engraved here shall never fade from the history of Katana
-            Requiem.
+            Names engraved here shall never fade from the history of Katana Requiem.
           </p>
 
           <div className="mt-6 space-y-4">
@@ -370,9 +247,7 @@ function Section({
   };
 
   return (
-    <div
-      className={`border rounded-xl p-6 mb-6 animate-pulse-glow ${style[color]}`}
-    >
+    <div className={`border rounded-xl p-6 mb-6 animate-pulse-glow ${style[color]}`}>
       <h2 className="text-3xl font-bold">{title}</h2>
       <p className="text-zinc-300 mt-2">{desc}</p>
       <div className="mt-4 space-y-3">{children}</div>
