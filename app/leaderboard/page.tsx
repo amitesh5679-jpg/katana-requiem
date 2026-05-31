@@ -48,16 +48,27 @@ function calculateV2(rows: Snapshot[]) {
     const weekBase = getClosestSnapshotBefore(snapshots, sevenDaysAgo);
     const monthBase = getClosestSnapshotBefore(snapshots, thirtyDaysAgo);
 
+    const todaySnapshots = snapshots.filter((row) => {
+      const rowDate = new Date(row.recorded_at);
+      return rowDate >= startOfToday;
+    });
+
+    const gamesToday = Math.max(
+      0,
+      ...todaySnapshots.map((row) => row.games ?? 0)
+    );
+
     return {
       username,
       currentRating: latest.rating,
       dailyGain: latest.rating - todayBase.rating,
       weeklyGain: latest.rating - weekBase.rating,
       monthlyGain: latest.rating - monthBase.rating,
-      gamesToday: latest.games ?? 0,
+      gamesToday,
     };
   });
 }
+
 
 export default async function LeaderboardPage() {
   const { data: snapshots } = await supabase

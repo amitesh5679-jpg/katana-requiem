@@ -1,13 +1,25 @@
 import { supabase } from "@/lib/supabase";
 
-function getBestRating(data: any) {
+function getRatings(data: any) {
+  const rapid = data.chess_rapid?.last?.rating ?? 0;
+  const blitz = data.chess_blitz?.last?.rating ?? 0;
+  const bullet = data.chess_bullet?.last?.rating ?? 0;
+
   const ratings = [
-    { mode: "Rapid", rating: data.chess_rapid?.last?.rating ?? 0 },
-    { mode: "Blitz", rating: data.chess_blitz?.last?.rating ?? 0 },
-    { mode: "Bullet", rating: data.chess_bullet?.last?.rating ?? 0 },
+    { mode: "Rapid", rating: rapid },
+    { mode: "Blitz", rating: blitz },
+    { mode: "Bullet", rating: bullet },
   ];
 
-  return ratings.sort((a, b) => b.rating - a.rating)[0];
+  const best = ratings.sort((a, b) => b.rating - a.rating)[0];
+
+  return {
+    rapid,
+    blitz,
+    bullet,
+    bestRating: best.rating,
+    bestMode: best.mode,
+  };
 }
 
 async function getGamesToday(username: string) {
@@ -55,12 +67,12 @@ export default async function UpdateRatingsPage() {
       );
 
       const stats = await statsRes.json();
-      const best = getBestRating(stats);
+      const ratings = getRatings(stats);
       const gamesToday = await getGamesToday(member.username);
 
       const { data: latestToday } = await supabase
         .from("rating_snapshots")
-        .select("id,rating,games")
+        .select("id,rating,games,rapid_rating,blitz_rating,bullet_rating,best_mode")
         .eq("username", member.username)
         .gte("recorded_at", `${today}T00:00:00.000Z`)
         .lt("recorded_at", `${today}T23:59:59.999Z`)
@@ -69,28 +81,42 @@ export default async function UpdateRatingsPage() {
 
       const latest = latestToday?.[0];
 
-      if (latest && latest.rating === best.rating && latest.games === gamesToday) {
+      if (
+        latest &&
+        latest.rating === ratings.bestRating &&
+        latest.games === gamesToday &&
+        latest.rapid_rating === ratings.rapid &&
+        latest.blitz_rating === ratings.blitz &&
+        latest.bullet_rating === ratings.bullet &&
+        latest.best_mode === ratings.bestMode
+      ) {
         return {
           username: member.username,
           skipped: true,
           reason: "No rating/game change since last update",
-          rating: best.rating,
+          rating: ratings.bestRating,
+          rapid: ratings.rapid,
+          blitz: ratings.blitz,
+          bullet: ratings.bullet,
           games: gamesToday,
-          mode: best.mode,
+          mode: ratings.bestMode,
         };
       }
 
       const snapshot = {
         username: member.username,
-        rating: best.rating,
+        rating: ratings.bestRating,
         games: gamesToday,
+        rapid_rating: ratings.rapid,
+        blitz_rating: ratings.blitz,
+        bullet_rating: ratings.bullet,
+        best_mode: ratings.bestMode,
       };
 
       const { error } = await supabase.from("rating_snapshots").insert(snapshot);
 
       return {
         ...snapshot,
-        mode: best.mode,
         saved: !error,
         error,
       };
@@ -100,7 +126,7 @@ export default async function UpdateRatingsPage() {
   return (
     <main style={{ background: "black", color: "white", minHeight: "100vh", padding: "40px" }}>
       <h1>Ratings Update Check ⚔️</h1>
-      <p>New snapshot saved only if rating or games changed.</p>
+      <p>New snapshot saved only if rating, mode, or games changed.</p>
       <pre>{JSON.stringify(results, null, 2)}</pre>
     </main>
   );
