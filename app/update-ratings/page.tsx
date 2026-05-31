@@ -40,28 +40,10 @@ async function getGamesToday(username: string) {
 export default async function UpdateRatingsPage() {
   const today = new Date().toISOString().slice(0, 10);
 
-  const { data: members } = await supabase
-    .from("members")
-    .select("username");
+  const { data: members } = await supabase.from("members").select("username");
 
   const results = await Promise.all(
     (members ?? []).map(async (member) => {
-      const { data: existing } = await supabase
-        .from("rating_snapshots")
-        .select("id")
-        .eq("username", member.username)
-        .gte("recorded_at", `${today}T00:00:00.000Z`)
-        .lt("recorded_at", `${today}T23:59:59.999Z`)
-        .limit(1);
-
-      if (existing && existing.length > 0) {
-        return {
-          username: member.username,
-          skipped: true,
-          reason: "Already saved today",
-        };
-      }
-
       const statsRes = await fetch(
         `https://api.chess.com/pub/player/${member.username}/stats`,
         {
@@ -76,15 +58,35 @@ export default async function UpdateRatingsPage() {
       const best = getBestRating(stats);
       const gamesToday = await getGamesToday(member.username);
 
+      const { data: latestToday } = await supabase
+        .from("rating_snapshots")
+        .select("id,rating,games")
+        .eq("username", member.username)
+        .gte("recorded_at", `${today}T00:00:00.000Z`)
+        .lt("recorded_at", `${today}T23:59:59.999Z`)
+        .order("recorded_at", { ascending: false })
+        .limit(1);
+
+      const latest = latestToday?.[0];
+
+      if (latest && latest.rating === best.rating && latest.games === gamesToday) {
+        return {
+          username: member.username,
+          skipped: true,
+          reason: "No rating/game change since last update",
+          rating: best.rating,
+          games: gamesToday,
+          mode: best.mode,
+        };
+      }
+
       const snapshot = {
         username: member.username,
         rating: best.rating,
         games: gamesToday,
       };
 
-      const { error } = await supabase
-        .from("rating_snapshots")
-        .insert(snapshot);
+      const { error } = await supabase.from("rating_snapshots").insert(snapshot);
 
       return {
         ...snapshot,
@@ -98,7 +100,7 @@ export default async function UpdateRatingsPage() {
   return (
     <main style={{ background: "black", color: "white", minHeight: "100vh", padding: "40px" }}>
       <h1>Ratings Update Check ⚔️</h1>
-      <p>If a player was already saved today, they are skipped.</p>
+      <p>New snapshot saved only if rating or games changed.</p>
       <pre>{JSON.stringify(results, null, 2)}</pre>
     </main>
   );
