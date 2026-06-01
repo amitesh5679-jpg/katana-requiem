@@ -70,7 +70,7 @@ function calculateV2(rows: Snapshot[]) {
     const highestThisWeek = Math.max(latest.rating, ...weekSnapshots.map((row) => row.rating));
     const highestThisMonth = Math.max(latest.rating, ...monthSnapshots.map((row) => row.rating));
 
-    const gamesToday = Math.max(0, (latest.games ?? 0) - (todayBase.games ?? 0));
+    const gamesToday = latest.games ?? 0;
 
     return {
       username,
