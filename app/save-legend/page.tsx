@@ -88,4 +88,4 @@ export default async function SaveLegendPage() {
       <pre>{JSON.stringify({ error }, null, 2)}</pre>
     </main>
   );
-}
+} 

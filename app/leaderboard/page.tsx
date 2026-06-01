@@ -168,9 +168,18 @@ export default async function LeaderboardPage() {
           <Rank rank="🌙" name={monthly[0]?.username ?? "Awaiting Slayer"} value={`+${monthly[0]?.monthlyGain ?? 0}`} label="monthly gain" />
         </Section>
 
-        <Section title="⚔️ Battle Frenzy" color="cyan" desc="The warrior who fought the most battles today.">
-<Rank rank="⚔️" name="Chess.com API delayed" value="—" label="games updating soon" />        </Section>
-
+        <Section
+  title="⚔️ Battle Frenzy"
+  color="cyan"
+  desc="The warrior who fought the most battles today."
+>
+  <Rank
+  rank="⚔️"
+  name={battle[0]?.username ?? "Awaiting Warrior"}
+  value={String(battle[0]?.gamesToday ?? 0)}
+  label="games today"
+/>
+</Section>
         <div className="border border-zinc-700 rounded-xl p-6 mt-6 bg-black/40">
           <h2 className="text-3xl font-bold">🏛 Hall of Legends</h2>
 
