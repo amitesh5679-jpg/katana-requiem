@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/update-ratings",
-      "schedule": "0 * * * *"
+      "schedule": "*/5 * * * *"
     }
   ]
 }
