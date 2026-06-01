@@ -23,15 +23,12 @@ function getRatings(data: any) {
 }
 
 async function getGamesToday(username: string) {
-  const now = new Date();
-  const year = now.getUTCFullYear();
-  const month = String(now.getUTCMonth() + 1).padStart(2, "0");
- const today = new Date().toLocaleDateString("en-CA", {
-  timeZone: "Asia/Kolkata",
-});
+  const today = new Date().toLocaleDateString("en-CA", {
+    timeZone: "Asia/Kolkata",
+  });
 
   const res = await fetch(
-    `https://api.chess.com/pub/player/${username}/games/${year}/${month}`,
+    `https://api.chess.com/pub/player/${username}/games`,
     {
       headers: {
         "User-Agent": "Katana Requiem leaderboard contact: shinigamigodme@gmail.com",
@@ -46,9 +43,11 @@ async function getGamesToday(username: string) {
 
   return (data.games ?? []).filter((game: any) => {
     if (!game.end_time) return false;
-   const gameDate = new Date(game.end_time * 1000).toLocaleDateString("en-CA", {
-  timeZone: "Asia/Kolkata",
-});
+
+    const gameDate = new Date(game.end_time * 1000).toLocaleDateString("en-CA", {
+      timeZone: "Asia/Kolkata",
+    });
+
     return gameDate === today;
   }).length;
 }
