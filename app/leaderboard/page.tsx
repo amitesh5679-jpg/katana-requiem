@@ -14,12 +14,25 @@ type Snapshot = {
   bullet_rating: number | null;
   best_mode: string | null;
 };
-
 function getDateLabel() {
   const now = new Date();
-  return `DAY ${now.getDate()} • MONTH OF ${now
-    .toLocaleString("en-IN", { month: "long" })
-    .toUpperCase()} • YEAR ${now.getFullYear()}`;
+
+  const day = now.toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    day: "numeric",
+  });
+
+  const month = now.toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    month: "long",
+  }).toUpperCase();
+
+  const year = now.toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+  });
+
+  return `DAY ${day} • MONTH OF ${month} • YEAR ${year}`;
 }
 
 function getClosestSnapshotBefore(rows: Snapshot[], targetDate: Date) {
