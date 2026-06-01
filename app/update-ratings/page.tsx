@@ -3,38 +3,21 @@ async function getGamesToday(username: string) {
     timeZone: "Asia/Kolkata",
   });
 
-  const now = new Date();
-  const year = now.getUTCFullYear();
-  const month = String(now.getUTCMonth() + 1).padStart(2, "0");
-
-  const urls = [
+  const res = await fetch(
     `https://api.chess.com/pub/player/${username}/games`,
-    `https://api.chess.com/pub/player/${username}/games/${year}/${month}`,
-  ];
-
-  const allGames: any[] = [];
-
-  for (const url of urls) {
-    const res = await fetch(url, {
+    {
       headers: {
         "User-Agent": "Katana Requiem leaderboard contact: shinigamigodme@gmail.com",
       },
       next: { revalidate: 0 },
-    });
+    }
+  );
 
-    if (!res.ok) continue;
+  if (!res.ok) return 0;
 
-    const data = await res.json();
-    allGames.push(...(data.games ?? []));
-  }
+  const data = await res.json();
 
-  const uniqueGames = new Map();
-
-  for (const game of allGames) {
-    uniqueGames.set(game.uuid ?? game.url, game);
-  }
-
-  return [...uniqueGames.values()].filter((game: any) => {
+  return (data.games ?? []).filter((game: any) => {
     if (!game.end_time) return false;
 
     const gameDate = new Date(game.end_time * 1000).toLocaleDateString("en-CA", {
