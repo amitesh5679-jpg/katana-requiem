@@ -27,6 +27,8 @@ function getClosestSnapshotBefore(rows: Snapshot[], targetDate: Date) {
   return before[before.length - 1] ?? rows[0];
 }
 
+
+
 function calculateV2(rows: Snapshot[]) {
   const grouped: Record<string, Snapshot[]> = {};
 
@@ -43,15 +45,14 @@ function calculateV2(rows: Snapshot[]) {
   const sevenDaysAgo = new Date(now);
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-  const thirtyDaysAgo = new Date(now);
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
   return Object.entries(grouped).map(([username, snapshots]) => {
     const latest = snapshots[snapshots.length - 1];
 
     const todayBase = getClosestSnapshotBefore(snapshots, startOfToday);
     const weekBase = getClosestSnapshotBefore(snapshots, sevenDaysAgo);
-    const monthBase = getClosestSnapshotBefore(snapshots, thirtyDaysAgo);
+    const monthBase = getClosestSnapshotBefore(snapshots, startOfMonth);
 
     const todaySnapshots = snapshots.filter(
       (row) => new Date(row.recorded_at) >= startOfToday
@@ -62,35 +63,21 @@ function calculateV2(rows: Snapshot[]) {
     );
 
     const monthSnapshots = snapshots.filter(
-      (row) => new Date(row.recorded_at) >= thirtyDaysAgo
+      (row) => new Date(row.recorded_at) >= startOfMonth
     );
 
-    const highestToday = Math.max(
-      latest.rating,
-      ...todaySnapshots.map((row) => row.rating)
-    );
+    const highestToday = Math.max(latest.rating, ...todaySnapshots.map((row) => row.rating));
+    const highestThisWeek = Math.max(latest.rating, ...weekSnapshots.map((row) => row.rating));
+    const highestThisMonth = Math.max(latest.rating, ...monthSnapshots.map((row) => row.rating));
 
-    const highestThisWeek = Math.max(
-      latest.rating,
-      ...weekSnapshots.map((row) => row.rating)
-    );
-
-    const highestThisMonth = Math.max(
-      latest.rating,
-      ...monthSnapshots.map((row) => row.rating)
-    );
-
-    const gamesToday = Math.max(
-      0,
-      ...todaySnapshots.map((row) => row.games ?? 0)
-    );
+    const gamesToday = Math.max(0, (latest.games ?? 0) - (todayBase.games ?? 0));
 
     return {
       username,
       currentRating: latest.rating,
-      dailyGain: highestToday - todayBase.rating,
-      weeklyGain: highestThisWeek - weekBase.rating,
-      monthlyGain: highestThisMonth - monthBase.rating,
+     dailyGain: Math.max(0, latest.rating - todayBase.rating),
+weeklyGain: Math.max(0, latest.rating - weekBase.rating),
+monthlyGain: Math.max(0, latest.rating - monthBase.rating),
       gamesToday,
     };
   });

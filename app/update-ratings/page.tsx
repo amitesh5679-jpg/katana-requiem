@@ -81,28 +81,7 @@ export default async function UpdateRatingsPage() {
 
       const latest = latestToday?.[0];
 
-      if (
-        latest &&
-        latest.rating === ratings.bestRating &&
-        latest.games === gamesToday &&
-        latest.rapid_rating === ratings.rapid &&
-        latest.blitz_rating === ratings.blitz &&
-        latest.bullet_rating === ratings.bullet &&
-        latest.best_mode === ratings.bestMode
-      ) {
-        return {
-          username: member.username,
-          skipped: true,
-          reason: "No rating/game change since last update",
-          rating: ratings.bestRating,
-          rapid: ratings.rapid,
-          blitz: ratings.blitz,
-          bullet: ratings.bullet,
-          games: gamesToday,
-          mode: ratings.bestMode,
-        };
-      }
-
+     
       const snapshot = {
         username: member.username,
         rating: ratings.bestRating,
