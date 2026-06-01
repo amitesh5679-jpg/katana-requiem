@@ -26,7 +26,9 @@ async function getGamesToday(username: string) {
   const now = new Date();
   const year = now.getUTCFullYear();
   const month = String(now.getUTCMonth() + 1).padStart(2, "0");
-  const today = now.toISOString().slice(0, 10);
+ const today = new Date().toLocaleDateString("en-CA", {
+  timeZone: "Asia/Kolkata",
+});
 
   const res = await fetch(
     `https://api.chess.com/pub/player/${username}/games/${year}/${month}`,
@@ -44,7 +46,9 @@ async function getGamesToday(username: string) {
 
   return (data.games ?? []).filter((game: any) => {
     if (!game.end_time) return false;
-    const gameDate = new Date(game.end_time * 1000).toISOString().slice(0, 10);
+   const gameDate = new Date(game.end_time * 1000).toLocaleDateString("en-CA", {
+  timeZone: "Asia/Kolkata",
+});
     return gameDate === today;
   }).length;
 }
