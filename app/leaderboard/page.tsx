@@ -1,9 +1,9 @@
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
-
-
 
 type Snapshot = {
   username: string;
@@ -15,6 +15,7 @@ type Snapshot = {
   bullet_rating: number | null;
   best_mode: string | null;
 };
+
 function getDateLabel() {
   const now = new Date();
 
@@ -23,10 +24,12 @@ function getDateLabel() {
     day: "numeric",
   });
 
-  const month = now.toLocaleString("en-IN", {
-    timeZone: "Asia/Kolkata",
-    month: "long",
-  }).toUpperCase();
+  const month = now
+    .toLocaleString("en-IN", {
+      timeZone: "Asia/Kolkata",
+      month: "long",
+    })
+    .toUpperCase();
 
   const year = now.toLocaleString("en-IN", {
     timeZone: "Asia/Kolkata",
@@ -36,37 +39,35 @@ function getDateLabel() {
   return `DAY ${day} • MONTH OF ${month} • YEAR ${year}`;
 }
 
-
-
-
-
+function getISTDate() {
+  return new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+}
 
 function getISTStartOfDay() {
-  const now = new Date();
-  const ist = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+  const ist = getISTDate();
+  return new Date(Date.UTC(ist.getFullYear(), ist.getMonth(), ist.getDate(), -5, -30, 0));
+}
 
-  return new Date(Date.UTC(
-    ist.getFullYear(),
-    ist.getMonth(),
-    ist.getDate(),
-    -5,
-    -30,
-    0
-  ));
+function getISTStartOfWeek() {
+  const ist = getISTDate();
+  const day = ist.getDay();
+  const diffToMonday = day === 0 ? 6 : day - 1;
+
+  return new Date(
+    Date.UTC(
+      ist.getFullYear(),
+      ist.getMonth(),
+      ist.getDate() - diffToMonday,
+      -5,
+      -30,
+      0
+    )
+  );
 }
 
 function getISTStartOfMonth() {
-  const now = new Date();
-  const ist = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
-
-  return new Date(Date.UTC(
-    ist.getFullYear(),
-    ist.getMonth(),
-    1,
-    -5,
-    -30,
-    0
-  ));
+  const ist = getISTDate();
+  return new Date(Date.UTC(ist.getFullYear(), ist.getMonth(), 1, -5, -30, 0));
 }
 
 function getClosestSnapshotBefore(rows: Snapshot[], targetDate: Date) {
@@ -74,21 +75,12 @@ function getClosestSnapshotBefore(rows: Snapshot[], targetDate: Date) {
   return before[before.length - 1] ?? rows[0];
 }
 
-function getISTStartOfDay() {
-  const now = new Date();
-  const ist = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
-
-  return new Date(Date.UTC(
-    ist.getFullYear(),
-    ist.getMonth(),
-    ist.getDate(),
-    -5,
-    -30,
-    0
-  ));
+function formatGain(value: number) {
+  if (value > 0) return `+${value}`;
+  return String(value);
 }
 
-function calculateV2(rows: Snapshot[]) {
+function calculateLeaderboard(rows: Snapshot[]) {
   const grouped: Record<string, Snapshot[]> = {};
 
   for (const row of rows) {
@@ -97,6 +89,8 @@ function calculateV2(rows: Snapshot[]) {
   }
 
   const startOfToday = getISTStartOfDay();
+  const startOfWeek = getISTStartOfWeek();
+  const startOfMonth = getISTStartOfMonth();
 
   return Object.entries(grouped).map(([username, snapshots]) => {
     snapshots.sort(
@@ -104,21 +98,24 @@ function calculateV2(rows: Snapshot[]) {
         new Date(a.recorded_at).getTime() - new Date(b.recorded_at).getTime()
     );
 
+    const first = snapshots[0];
     const latest = snapshots[snapshots.length - 1];
 
-    const todaySnapshots = snapshots.filter(
-      (row) => new Date(row.recorded_at) >= startOfToday
-    );
+    const todayBase = getClosestSnapshotBefore(snapshots, startOfToday);
+    const weekBase = getClosestSnapshotBefore(snapshots, startOfWeek);
+    const monthBase = getClosestSnapshotBefore(snapshots, startOfMonth);
 
-    const todayBase = todaySnapshots[0] ?? latest;
+    const latestGames = latest.games ?? 0;
+    const todayBaseGames = todayBase.games ?? 0;
 
     return {
       username,
       currentRating: latest.rating,
-      dailyGain: Math.max(0, latest.rating - todayBase.rating),
-      weeklyGain: Math.max(0, latest.rating - snapshots[0].rating),
-      monthlyGain: Math.max(0, latest.rating - snapshots[0].rating),
-      gamesToday: latest.games ?? 0,
+      netRating: latest.rating - first.rating,
+      dailyGain: latest.rating - todayBase.rating,
+      weeklyGain: latest.rating - weekBase.rating,
+      monthlyGain: latest.rating - monthBase.rating,
+      gamesToday: Math.max(0, latestGames - todayBaseGames),
     };
   });
 }
@@ -136,7 +133,7 @@ export default async function LeaderboardPage() {
     .select("username,title,month,year")
     .order("created_at", { ascending: false });
 
-  const rankings = calculateV2((snapshots ?? []) as Snapshot[]);
+  const rankings = calculateLeaderboard((snapshots ?? []) as Snapshot[]);
 
   const daily = [...rankings].sort((a, b) => b.dailyGain - a.dailyGain);
   const weekly = [...rankings].sort((a, b) => b.weeklyGain - a.weeklyGain);
@@ -187,39 +184,47 @@ export default async function LeaderboardPage() {
           </h3>
 
           <div className="space-y-2 text-zinc-300">
-            <p>🔥 Growth Hashira — Highest rating gain today.</p>
-            <p>⚡ Ascending Hashira — Highest rating gain this week.</p>
-            <p>🌙 Demon Moon Ascension — Highest rating gain this month.</p>
+            <p>🔥 Growth Hashira — Highest net rating gain today.</p>
+            <p>⚡ Ascending Hashira — Highest net rating gain this week.</p>
+            <p>🌙 Demon Moon Ascension — Highest net rating gain this month.</p>
             <p>⚔️ Battle Frenzy — Most games played today.</p>
           </div>
         </div>
 
-        <Section title="🔥 Growth Hashira" color="orange" desc="The warriors whose flames burned brightest today.">
-          <Rank rank="🥇" name={daily[0]?.username ?? "Awaiting Slayer"} value={`+${daily[0]?.dailyGain ?? 0}`} label="rating today" />
-          <Rank rank="🥈" name={daily[1]?.username ?? "Awaiting Slayer"} value={`+${daily[1]?.dailyGain ?? 0}`} label="rating today" />
-          <Rank rank="🥉" name={daily[2]?.username ?? "Awaiting Slayer"} value={`+${daily[2]?.dailyGain ?? 0}`} label="rating today" />
-        </Section>
-
-        <Section title="⚡ Ascending Hashira" color="yellow" desc="The relentless slayer whose progress echoed through the week.">
-          <Rank rank="⚡" name={weekly[0]?.username ?? "Awaiting Slayer"} value={`+${weekly[0]?.weeklyGain ?? 0}`} label="weekly gain" />
-        </Section>
-
-        <Section title="🌙 Demon Moon Ascension" color="purple" desc="The rise that rivaled the Upper Moons themselves.">
-          <Rank rank="🌙" name={monthly[0]?.username ?? "Awaiting Slayer"} value={`+${monthly[0]?.monthlyGain ?? 0}`} label="monthly gain" />
+        <Section
+          title="🔥 Growth Hashira"
+          color="orange"
+          desc="The warriors whose flames burned brightest today."
+        >
+          <Rank rank="🥇" data={daily[0]} value={formatGain(daily[0]?.dailyGain ?? 0)} label="rating today" />
+          <Rank rank="🥈" data={daily[1]} value={formatGain(daily[1]?.dailyGain ?? 0)} label="rating today" />
+          <Rank rank="🥉" data={daily[2]} value={formatGain(daily[2]?.dailyGain ?? 0)} label="rating today" />
         </Section>
 
         <Section
-  title="⚔️ Battle Frenzy"
-  color="cyan"
-  desc="The warrior who fought the most battles today."
->
-  <Rank
-  rank="⚔️"
-  name={battle[0]?.username ?? "Awaiting Warrior"}
-  value={String(battle[0]?.gamesToday ?? 0)}
-  label="games today"
-/>
-</Section>
+          title="⚡ Ascending Hashira"
+          color="yellow"
+          desc="The relentless slayer whose progress echoed through the week."
+        >
+          <Rank rank="⚡" data={weekly[0]} value={formatGain(weekly[0]?.weeklyGain ?? 0)} label="weekly rating" />
+        </Section>
+
+        <Section
+          title="🌙 Demon Moon Ascension"
+          color="purple"
+          desc="The rise that rivaled the Upper Moons themselves."
+        >
+          <Rank rank="🌙" data={monthly[0]} value={formatGain(monthly[0]?.monthlyGain ?? 0)} label="monthly rating" />
+        </Section>
+
+        <Section
+          title="⚔️ Battle Frenzy"
+          color="cyan"
+          desc="The warrior who fought the most battles today."
+        >
+          <Rank rank="⚔️" data={battle[0]} value={String(battle[0]?.gamesToday ?? 0)} label="games today" />
+        </Section>
+
         <div className="border border-zinc-700 rounded-xl p-6 mt-6 bg-black/40">
           <h2 className="text-3xl font-bold">🏛 Hall of Legends</h2>
 
@@ -272,7 +277,7 @@ function Section({
   title: string;
   desc: string;
   color: "orange" | "yellow" | "purple" | "cyan";
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   const style = {
     orange: "border-orange-500 bg-orange-950/20 text-orange-300",
@@ -292,12 +297,18 @@ function Section({
 
 function Rank({
   rank,
-  name,
+  data,
   value,
   label,
 }: {
   rank: string;
-  name: string;
+  data:
+    | {
+        username: string;
+        currentRating: number;
+        netRating: number;
+      }
+    | undefined;
   value: string;
   label: string;
 }) {
@@ -305,9 +316,12 @@ function Rank({
     <div className="border border-white/20 rounded-lg p-4 flex justify-between items-center bg-black/30">
       <div>
         <div className="font-bold">
-          {rank} {name}
+          {rank} {data?.username ?? "Awaiting Slayer"}
         </div>
-        <div className="text-sm text-zinc-500">Current Holder</div>
+
+        <div className="text-sm text-zinc-500">
+          Current: {data?.currentRating ?? 0} • Net: {formatGain(data?.netRating ?? 0)}
+        </div>
       </div>
 
       <div className="text-right">
