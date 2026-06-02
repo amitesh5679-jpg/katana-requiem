@@ -1,8 +1,9 @@
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+
 
 type Snapshot = {
   username: string;
@@ -42,6 +43,39 @@ function getClosestSnapshotBefore(rows: Snapshot[], targetDate: Date) {
 
 
 
+function getISTStartOfDay() {
+  const now = new Date();
+  const ist = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+
+  return new Date(Date.UTC(
+    ist.getFullYear(),
+    ist.getMonth(),
+    ist.getDate(),
+    -5,
+    -30,
+    0
+  ));
+}
+
+function getISTStartOfMonth() {
+  const now = new Date();
+  const ist = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+
+  return new Date(Date.UTC(
+    ist.getFullYear(),
+    ist.getMonth(),
+    1,
+    -5,
+    -30,
+    0
+  ));
+}
+
+function getClosestSnapshotBefore(rows: Snapshot[], targetDate: Date) {
+  const before = rows.filter((row) => new Date(row.recorded_at) <= targetDate);
+  return before[before.length - 1] ?? rows[0];
+}
+
 function calculateV2(rows: Snapshot[]) {
   const grouped: Record<string, Snapshot[]> = {};
 
@@ -50,15 +84,12 @@ function calculateV2(rows: Snapshot[]) {
     grouped[row.username].push(row);
   }
 
-  const now = new Date();
+  const startOfToday = getISTStartOfDay();
 
-  const startOfToday = new Date(now);
-  startOfToday.setHours(0, 0, 0, 0);
-
-  const sevenDaysAgo = new Date(now);
+  const sevenDaysAgo = new Date(startOfToday);
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const startOfMonth = getISTStartOfMonth();
 
   return Object.entries(grouped).map(([username, snapshots]) => {
     const latest = snapshots[snapshots.length - 1];
@@ -67,31 +98,13 @@ function calculateV2(rows: Snapshot[]) {
     const weekBase = getClosestSnapshotBefore(snapshots, sevenDaysAgo);
     const monthBase = getClosestSnapshotBefore(snapshots, startOfMonth);
 
-    const todaySnapshots = snapshots.filter(
-      (row) => new Date(row.recorded_at) >= startOfToday
-    );
-
-    const weekSnapshots = snapshots.filter(
-      (row) => new Date(row.recorded_at) >= sevenDaysAgo
-    );
-
-    const monthSnapshots = snapshots.filter(
-      (row) => new Date(row.recorded_at) >= startOfMonth
-    );
-
-    const highestToday = Math.max(latest.rating, ...todaySnapshots.map((row) => row.rating));
-    const highestThisWeek = Math.max(latest.rating, ...weekSnapshots.map((row) => row.rating));
-    const highestThisMonth = Math.max(latest.rating, ...monthSnapshots.map((row) => row.rating));
-
-    const gamesToday = latest.games ?? 0;
-
     return {
       username,
       currentRating: latest.rating,
-     dailyGain: Math.max(0, latest.rating - todayBase.rating),
-weeklyGain: Math.max(0, latest.rating - weekBase.rating),
-monthlyGain: Math.max(0, latest.rating - monthBase.rating),
-      gamesToday,
+      dailyGain: Math.max(0, latest.rating - todayBase.rating),
+      weeklyGain: Math.max(0, latest.rating - weekBase.rating),
+      monthlyGain: Math.max(0, latest.rating - monthBase.rating),
+      gamesToday: latest.games ?? 0,
     };
   });
 }
