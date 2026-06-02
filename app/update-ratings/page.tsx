@@ -126,11 +126,22 @@ export default async function UpdateRatingsPage() {
     })
   );
 
-  return (
-    <main style={{ background: "black", color: "white", minHeight: "100vh", padding: "40px" }}>
-      <h1>Ratings Update Check ⚔️</h1>
-      <p>Snapshots updated using IST day timeline.</p>
-      <pre>{JSON.stringify(results, null, 2)}</pre>
-    </main>
-  );
+ return (
+  <main style={{ background: "black", color: "white", minHeight: "100vh", padding: "40px", textAlign: "center" }}>
+    <h1>⚔️ Updating Leaderboard...</h1>
+    <p>Please wait. You will be sent to the leaderboard in a moment.</p>
+
+    <script
+      dangerouslySetInnerHTML={{
+        __html: `
+          setTimeout(function() {
+            window.location.href = "/leaderboard";
+          }, 2500);
+        `,
+      }}
+    />
+
+    <pre style={{ display: "none" }}>{JSON.stringify(results, null, 2)}</pre>
+  </main>
+);
 }
