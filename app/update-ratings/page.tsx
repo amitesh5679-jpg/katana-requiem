@@ -88,7 +88,11 @@ async function getGamesToday(username: string) {
   }).length;
 }
 
-export default async function UpdateRatingsPage() {
+export default async function UpdateRatingsPage({
+  searchParams,
+}: {
+  searchParams?: { go?: string };
+}) {
   const { data: members } = await supabase.from("members").select("username");
 
   const results = await Promise.all(
@@ -127,6 +131,16 @@ export default async function UpdateRatingsPage() {
     })
   );
 
-   return redirect("/leaderboard");
+   if (searchParams?.go === "1") {
+  return redirect("/leaderboard");
+}
+
+return (
+  <main style={{ background: "black", color: "white", minHeight: "100vh", padding: "40px" }}>
+    <h1>Ratings Update Check ⚔️</h1>
+    <p>Snapshots updated using IST day timeline.</p>
+    <pre>{JSON.stringify(results, null, 2)}</pre>
+  </main>
+);
 }
 
