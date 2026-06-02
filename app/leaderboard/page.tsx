@@ -36,10 +36,8 @@ function getDateLabel() {
   return `DAY ${day} • MONTH OF ${month} • YEAR ${year}`;
 }
 
-function getClosestSnapshotBefore(rows: Snapshot[], targetDate: Date) {
-  const before = rows.filter((row) => new Date(row.recorded_at) <= targetDate);
-  return before[before.length - 1] ?? rows[0];
-}
+
+
 
 
 
@@ -76,6 +74,20 @@ function getClosestSnapshotBefore(rows: Snapshot[], targetDate: Date) {
   return before[before.length - 1] ?? rows[0];
 }
 
+function getISTStartOfDay() {
+  const now = new Date();
+  const ist = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+
+  return new Date(Date.UTC(
+    ist.getFullYear(),
+    ist.getMonth(),
+    ist.getDate(),
+    -5,
+    -30,
+    0
+  ));
+}
+
 function calculateV2(rows: Snapshot[]) {
   const grouped: Record<string, Snapshot[]> = {};
 
@@ -86,24 +98,26 @@ function calculateV2(rows: Snapshot[]) {
 
   const startOfToday = getISTStartOfDay();
 
-  const sevenDaysAgo = new Date(startOfToday);
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-  const startOfMonth = getISTStartOfMonth();
-
   return Object.entries(grouped).map(([username, snapshots]) => {
+    snapshots.sort(
+      (a, b) =>
+        new Date(a.recorded_at).getTime() - new Date(b.recorded_at).getTime()
+    );
+
     const latest = snapshots[snapshots.length - 1];
 
-    const todayBase = getClosestSnapshotBefore(snapshots, startOfToday);
-    const weekBase = getClosestSnapshotBefore(snapshots, sevenDaysAgo);
-    const monthBase = getClosestSnapshotBefore(snapshots, startOfMonth);
+    const todaySnapshots = snapshots.filter(
+      (row) => new Date(row.recorded_at) >= startOfToday
+    );
+
+    const todayBase = todaySnapshots[0] ?? latest;
 
     return {
       username,
       currentRating: latest.rating,
       dailyGain: Math.max(0, latest.rating - todayBase.rating),
-      weeklyGain: Math.max(0, latest.rating - weekBase.rating),
-      monthlyGain: Math.max(0, latest.rating - monthBase.rating),
+      weeklyGain: Math.max(0, latest.rating - snapshots[0].rating),
+      monthlyGain: Math.max(0, latest.rating - snapshots[0].rating),
       gamesToday: latest.games ?? 0,
     };
   });
