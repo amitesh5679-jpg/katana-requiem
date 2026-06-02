@@ -39,26 +39,42 @@ function getDateLabel() {
   return `DAY ${day} • MONTH OF ${month} • YEAR ${year}`;
 }
 
-function getLatestSnapshots(rows: Snapshot[]) {
-  const latestMap = new Map<string, Snapshot>();
+function getPlayerData(rows: Snapshot[]) {
+  const grouped = new Map<string, Snapshot[]>();
 
   for (const row of rows) {
     const username = row.username.trim();
     if (!username) continue;
 
-    const cleanRow = { ...row, username };
-    const existing = latestMap.get(username);
-
-    if (
-      !existing ||
-      new Date(cleanRow.recorded_at).getTime() >
-        new Date(existing.recorded_at).getTime()
-    ) {
-      latestMap.set(username, cleanRow);
-    }
+    if (!grouped.has(username)) grouped.set(username, []);
+    grouped.get(username)!.push({ ...row, username });
   }
 
-  return Array.from(latestMap.values());
+  return Array.from(grouped.entries()).map(([username, snapshots]) => {
+    snapshots.sort(
+      (a, b) =>
+        new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime()
+    );
+
+    const latest = snapshots[0];
+    const previous = snapshots[1] ?? latest;
+    const difference = latest.rating - previous.rating;
+
+    return {
+      username,
+      rating: latest.rating,
+      games: latest.games ?? 0,
+      bestMode: latest.best_mode ?? "Unknown",
+      previousRating: previous.rating,
+      newRating: latest.rating,
+      difference,
+    };
+  });
+}
+
+function formatDiff(value: number) {
+  if (value > 0) return `+${value}`;
+  return String(value);
 }
 
 export default async function LeaderboardPage() {
@@ -78,10 +94,11 @@ export default async function LeaderboardPage() {
     .select("username,title,month,year")
     .order("created_at", { ascending: false });
 
-  const latest = getLatestSnapshots((snapshots ?? []) as Snapshot[]);
+  const players = getPlayerData((snapshots ?? []) as Snapshot[]);
 
-  const highestRating = [...latest].sort((a, b) => b.rating - a.rating);
-  const mostGames = [...latest].sort((a, b) => (b.games ?? 0) - (a.games ?? 0));
+  const highestRating = [...players].sort((a, b) => b.rating - a.rating);
+  const mostGames = [...players].sort((a, b) => b.games - a.games);
+  const risingSlayers = [...players].sort((a, b) => b.difference - a.difference);
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-black via-[#090303] to-black text-white p-6">
@@ -128,7 +145,7 @@ export default async function LeaderboardPage() {
               rank={index + 1}
               username={player.username}
               mainValue={`${player.rating}`}
-              subValue={`Best Mode: ${player.best_mode ?? "Unknown"}`}
+              subValue={`Best Mode: ${player.bestMode}`}
             />
           ))}
         </Section>
@@ -139,32 +156,22 @@ export default async function LeaderboardPage() {
               key={player.username}
               rank={index + 1}
               username={player.username}
-              mainValue={`${player.games ?? 0} games`}
+              mainValue={`${player.games} games`}
               subValue={`Rating: ${player.rating}`}
             />
           ))}
         </Section>
 
-        <Section title="📜 All Slayers" color="red">
-          <div className="grid md:grid-cols-2 gap-4">
-            {latest.map((player) => (
-              <div
-                key={player.username}
-                className="border border-white/10 rounded-xl p-4 bg-black/40"
-              >
-                <div className="font-bold text-red-300">{player.username}</div>
-                <div className="text-zinc-300 mt-2">Rating: {player.rating}</div>
-                <div className="text-zinc-300">Games Today: {player.games ?? 0}</div>
-                <div className="text-zinc-400 text-sm mt-2">
-                  Rapid {player.rapid_rating ?? 0} • Blitz {player.blitz_rating ?? 0} • Bullet{" "}
-                  {player.bullet_rating ?? 0}
-                </div>
-                <div className="text-zinc-500 text-xs mt-2">
-                  Best Mode: {player.best_mode ?? "Unknown"}
-                </div>
-              </div>
-            ))}
-          </div>
+        <Section title="🔥 Rising Slayers" color="orange">
+          {risingSlayers.slice(0, 10).map((player, index) => (
+            <PlayerCard
+              key={player.username}
+              rank={index + 1}
+              username={player.username}
+              mainValue={formatDiff(player.difference)}
+              subValue={`${player.previousRating} → ${player.newRating}`}
+            />
+          ))}
         </Section>
 
         <div className="border border-zinc-700 rounded-xl p-6 mt-6 bg-black/40">
@@ -206,13 +213,13 @@ function Section({
   children,
 }: {
   title: string;
-  color: "yellow" | "cyan" | "red";
+  color: "yellow" | "cyan" | "orange";
   children: ReactNode;
 }) {
   const style = {
     yellow: "border-yellow-500 bg-yellow-950/20 text-yellow-300",
     cyan: "border-cyan-500 bg-cyan-950/20 text-cyan-300",
-    red: "border-red-500 bg-red-950/20 text-red-300",
+    orange: "border-orange-500 bg-orange-950/20 text-orange-300",
   };
 
   return (
@@ -234,7 +241,8 @@ function PlayerCard({
   mainValue: string;
   subValue: string;
 }) {
-  const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : `#${rank}`;
+  const medal =
+    rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : `#${rank}`;
 
   return (
     <div className="border border-white/20 rounded-lg p-4 flex justify-between items-center bg-black/30">
