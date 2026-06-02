@@ -127,6 +127,6 @@ export default async function UpdateRatingsPage() {
     })
   );
 
- redirect("/leaderboard");
-
+   return redirect("/leaderboard");
 }
+
