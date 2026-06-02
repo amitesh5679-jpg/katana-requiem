@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 function getRatings(data: any) {
@@ -45,6 +44,7 @@ function getISTDayRangeUnix() {
 
 function getMonthsToCheck() {
   const now = new Date();
+
   return [
     new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1)),
     new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)),
@@ -64,7 +64,8 @@ async function getGamesToday(username: string) {
       `https://api.chess.com/pub/player/${username.toLowerCase()}/games/${year}/${month}`,
       {
         headers: {
-          "User-Agent": "Katana Requiem leaderboard contact: shinigamigodme@gmail.com",
+          "User-Agent":
+            "Katana Requiem leaderboard contact: shinigamigodme@gmail.com",
         },
         cache: "no-store",
       }
@@ -88,11 +89,7 @@ async function getGamesToday(username: string) {
   }).length;
 }
 
-export default async function UpdateRatingsPage({
-  searchParams,
-}: {
-  searchParams?: { go?: string };
-}) {
+export default async function UpdateRatingsPage() {
   const { data: members } = await supabase.from("members").select("username");
 
   const results = await Promise.all(
@@ -101,7 +98,8 @@ export default async function UpdateRatingsPage({
         `https://api.chess.com/pub/player/${member.username.toLowerCase()}/stats`,
         {
           headers: {
-            "User-Agent": "Katana Requiem leaderboard contact: shinigamigodme@gmail.com",
+            "User-Agent":
+              "Katana Requiem leaderboard contact: shinigamigodme@gmail.com",
           },
           cache: "no-store",
         }
@@ -131,16 +129,18 @@ export default async function UpdateRatingsPage({
     })
   );
 
-   if (searchParams?.go === "1") {
-  return redirect("/leaderboard");
+  return (
+    <main
+      style={{
+        background: "black",
+        color: "white",
+        minHeight: "100vh",
+        padding: "40px",
+      }}
+    >
+      <h1>Ratings Update Check ⚔️</h1>
+      <p>Snapshots updated using IST day timeline.</p>
+      <pre>{JSON.stringify(results, null, 2)}</pre>
+    </main>
+  );
 }
-
-return (
-  <main style={{ background: "black", color: "white", minHeight: "100vh", padding: "40px" }}>
-    <h1>Ratings Update Check ⚔️</h1>
-    <p>Snapshots updated using IST day timeline.</p>
-    <pre>{JSON.stringify(results, null, 2)}</pre>
-  </main>
-);
-}
-
