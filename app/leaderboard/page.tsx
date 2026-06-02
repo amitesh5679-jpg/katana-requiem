@@ -24,12 +24,10 @@ function getDateLabel() {
     day: "numeric",
   });
 
-  const month = now
-    .toLocaleString("en-IN", {
-      timeZone: "Asia/Kolkata",
-      month: "long",
-    })
-    .toUpperCase();
+  const month = now.toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    month: "long",
+  }).toUpperCase();
 
   const year = now.toLocaleString("en-IN", {
     timeZone: "Asia/Kolkata",
@@ -45,10 +43,29 @@ function getISTDate() {
 
 function getISTStartOfDay() {
   const ist = getISTDate();
+  return new Date(Date.UTC(ist.getFullYear(), ist.getMonth(), ist.getDate(), -5, -30, 0));
+}
+
+function getISTStartOfWeek() {
+  const ist = getISTDate();
+  const day = ist.getDay();
+  const diffToMonday = day === 0 ? 6 : day - 1;
 
   return new Date(
-    Date.UTC(ist.getFullYear(), ist.getMonth(), ist.getDate(), -5, -30, 0)
+    Date.UTC(
+      ist.getFullYear(),
+      ist.getMonth(),
+      ist.getDate() - diffToMonday,
+      -5,
+      -30,
+      0
+    )
   );
+}
+
+function getISTStartOfMonth() {
+  const ist = getISTDate();
+  return new Date(Date.UTC(ist.getFullYear(), ist.getMonth(), 1, -5, -30, 0));
 }
 
 function formatDiff(value: number) {
@@ -56,9 +73,20 @@ function formatDiff(value: number) {
   return String(value);
 }
 
+function getBaseSnapshot(snapshots: Snapshot[], target: Date) {
+  const beforeTarget = snapshots.find(
+    (s) => new Date(s.recorded_at).getTime() <= target.getTime()
+  );
+
+  return beforeTarget ?? snapshots[snapshots.length - 1];
+}
+
 function getPlayerData(rows: Snapshot[]) {
   const grouped = new Map<string, Snapshot[]>();
+
   const startOfToday = getISTStartOfDay();
+  const startOfWeek = getISTStartOfWeek();
+  const startOfMonth = getISTStartOfMonth();
 
   for (const row of rows) {
     const username = row.username.trim();
@@ -77,22 +105,27 @@ function getPlayerData(rows: Snapshot[]) {
     const latest = snapshots[0];
     const previous = snapshots[1] ?? latest;
 
-    const todaySnapshots = snapshots.filter(
-      (s) => new Date(s.recorded_at) >= startOfToday
-    );
-
-    const todayBase = todaySnapshots[todaySnapshots.length - 1] ?? latest;
+    const dayBase = getBaseSnapshot(snapshots, startOfToday);
+    const weekBase = getBaseSnapshot(snapshots, startOfWeek);
+    const monthBase = getBaseSnapshot(snapshots, startOfMonth);
 
     return {
       username,
       rating: latest.rating,
       games: latest.games ?? 0,
       bestMode: latest.best_mode ?? "Unknown",
+
       previousRating: previous.rating,
-      newRating: latest.rating,
       risingDifference: latest.rating - previous.rating,
-      todayStartRating: todayBase.rating,
-      todayIncrease: latest.rating - todayBase.rating,
+
+      dayBaseRating: dayBase.rating,
+      todayIncrease: latest.rating - dayBase.rating,
+
+      weekBaseRating: weekBase.rating,
+      weekIncrease: latest.rating - weekBase.rating,
+
+      monthBaseRating: monthBase.rating,
+      monthIncrease: latest.rating - monthBase.rating,
     };
   });
 }
@@ -118,12 +151,10 @@ export default async function LeaderboardPage() {
 
   const highestRating = [...players].sort((a, b) => b.rating - a.rating);
   const mostGames = [...players].sort((a, b) => b.games - a.games);
-  const risingSlayer = [...players].sort(
-    (a, b) => b.risingDifference - a.risingDifference
-  );
-  const dailyFlame = [...players].sort(
-    (a, b) => b.todayIncrease - a.todayIncrease
-  );
+  const risingSlayer = [...players].sort((a, b) => b.risingDifference - a.risingDifference);
+  const dailySurge = [...players].sort((a, b) => b.todayIncrease - a.todayIncrease);
+  const weeklySurge = [...players].sort((a, b) => b.weekIncrease - a.weekIncrease);
+  const monthlySurge = [...players].sort((a, b) => b.monthIncrease - a.monthIncrease);
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-black via-[#090303] to-black text-white p-6">
@@ -154,16 +185,17 @@ export default async function LeaderboardPage() {
           </div>
 
           <div className="mt-6">
-            <Link
-              href="/"
-              className="border border-red-500 rounded-lg px-4 py-2 hover:bg-red-950/40"
-            >
+            <Link href="/" className="border border-red-500 rounded-lg px-4 py-2 hover:bg-red-950/40">
               ← Return to Main Gate
             </Link>
           </div>
         </div>
 
-        <Section title="👑 Crowned Rating Lords" color="yellow">
+        <Section
+          title="👑 Crowned Rating Lords"
+          desc="Top 3 warriors with the highest current rating."
+          color="yellow"
+        >
           {highestRating.slice(0, 3).map((player, index) => (
             <PlayerCard
               key={player.username}
@@ -175,7 +207,11 @@ export default async function LeaderboardPage() {
           ))}
         </Section>
 
-        <Section title="⚔️ Battle Frenzy Champion" color="cyan">
+        <Section
+          title="⚔️ Battle Frenzy Champion"
+          desc="The warrior who played the most games today."
+          color="cyan"
+        >
           <PlayerCard
             rank={1}
             username={mostGames[0]?.username ?? "Awaiting Warrior"}
@@ -184,25 +220,55 @@ export default async function LeaderboardPage() {
           />
         </Section>
 
-        <Section title="🔥 Rising Slayer" color="orange">
+        <Section
+          title="🔥 Rising Slayer"
+          desc="Biggest rating jump from the previous update to the latest update."
+          color="orange"
+        >
           <PlayerCard
             rank={1}
             username={risingSlayer[0]?.username ?? "Awaiting Slayer"}
             mainValue={formatDiff(risingSlayer[0]?.risingDifference ?? 0)}
-            subValue={`${risingSlayer[0]?.previousRating ?? 0} → ${
-              risingSlayer[0]?.newRating ?? 0
-            }`}
+            subValue={`${risingSlayer[0]?.previousRating ?? 0} → ${risingSlayer[0]?.rating ?? 0}`}
           />
         </Section>
 
-        <Section title="🌅 Dawn Breathing Surge" color="red">
+        <Section
+          title="🌅 Dawn Breathing Surge"
+          desc="Highest rating gain today, calculated from the start of the IST day."
+          color="red"
+        >
           <PlayerCard
             rank={1}
-            username={dailyFlame[0]?.username ?? "Awaiting Slayer"}
-            mainValue={formatDiff(dailyFlame[0]?.todayIncrease ?? 0)}
-            subValue={`${dailyFlame[0]?.todayStartRating ?? 0} → ${
-              dailyFlame[0]?.rating ?? 0
-            } today`}
+            username={dailySurge[0]?.username ?? "Awaiting Slayer"}
+            mainValue={formatDiff(dailySurge[0]?.todayIncrease ?? 0)}
+            subValue={`${dailySurge[0]?.dayBaseRating ?? 0} → ${dailySurge[0]?.rating ?? 0} today`}
+          />
+        </Section>
+
+        <Section
+          title="⚡ Thunder Week Ascension"
+          desc="Highest rating gain this week, calculated from Monday 00:00 IST."
+          color="purple"
+        >
+          <PlayerCard
+            rank={1}
+            username={weeklySurge[0]?.username ?? "Awaiting Slayer"}
+            mainValue={formatDiff(weeklySurge[0]?.weekIncrease ?? 0)}
+            subValue={`${weeklySurge[0]?.weekBaseRating ?? 0} → ${weeklySurge[0]?.rating ?? 0} this week`}
+          />
+        </Section>
+
+        <Section
+          title="🌙 Moonlit Month Rise"
+          desc="Highest rating gain this month, calculated from the 1st day of the month in IST."
+          color="blue"
+        >
+          <PlayerCard
+            rank={1}
+            username={monthlySurge[0]?.username ?? "Awaiting Slayer"}
+            mainValue={formatDiff(monthlySurge[0]?.monthIncrease ?? 0)}
+            subValue={`${monthlySurge[0]?.monthBaseRating ?? 0} → ${monthlySurge[0]?.rating ?? 0} this month`}
           />
         </Section>
 
@@ -210,7 +276,7 @@ export default async function LeaderboardPage() {
           <h2 className="text-3xl font-bold">🏛 Hall of Legends</h2>
 
           <p className="text-zinc-400 mt-2">
-            Names engraved here shall never fade from the history of Katana Requiem.
+            Monthly legends and permanent title holders.
           </p>
 
           <div className="mt-6 space-y-4">
@@ -225,9 +291,7 @@ export default async function LeaderboardPage() {
                   <div className="text-purple-300 font-bold">
                     {legend.month} {legend.year}
                   </div>
-
                   <div className="text-zinc-300">🌙 {legend.title}</div>
-
                   <div className="text-yellow-400">{legend.username}</div>
                 </div>
               ))
@@ -241,11 +305,13 @@ export default async function LeaderboardPage() {
 
 function Section({
   title,
+  desc,
   color,
   children,
 }: {
   title: string;
-  color: "yellow" | "cyan" | "orange" | "red";
+  desc: string;
+  color: "yellow" | "cyan" | "orange" | "red" | "purple" | "blue";
   children: ReactNode;
 }) {
   const style = {
@@ -253,11 +319,14 @@ function Section({
     cyan: "border-cyan-500 bg-cyan-950/20 text-cyan-300",
     orange: "border-orange-500 bg-orange-950/20 text-orange-300",
     red: "border-red-500 bg-red-950/20 text-red-300",
+    purple: "border-purple-500 bg-purple-950/20 text-purple-300",
+    blue: "border-blue-500 bg-blue-950/20 text-blue-300",
   };
 
   return (
     <section className={`border rounded-xl p-6 mb-6 animate-pulse-glow ${style[color]}`}>
       <h2 className="text-3xl font-bold">{title}</h2>
+      <p className="text-zinc-400 mt-2">{desc}</p>
       <div className="mt-4 space-y-3">{children}</div>
     </section>
   );
