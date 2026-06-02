@@ -84,8 +84,14 @@ function calculateLeaderboard(rows: Snapshot[]) {
   const grouped: Record<string, Snapshot[]> = {};
 
   for (const row of rows) {
-    if (!grouped[row.username]) grouped[row.username] = [];
-    grouped[row.username].push(row);
+    const cleanUsername = row.username.trim();
+
+if (!grouped[cleanUsername]) grouped[cleanUsername] = [];
+
+grouped[cleanUsername].push({
+  ...row,
+  username: cleanUsername,
+});
   }
 
   const startOfToday = getISTStartOfDay();
@@ -115,8 +121,7 @@ function calculateLeaderboard(rows: Snapshot[]) {
       dailyGain: latest.rating - todayBase.rating,
       weeklyGain: latest.rating - weekBase.rating,
       monthlyGain: latest.rating - monthBase.rating,
-      gamesToday: Math.max(0, latestGames - todayBaseGames),
-    };
+gamesToday: latest.games ?? 0,    };
   });
 }
 

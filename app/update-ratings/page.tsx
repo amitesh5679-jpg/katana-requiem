@@ -90,10 +90,18 @@ async function getGamesToday(username: string) {
 }
 
 export default async function UpdateRatingsPage() {
-  const { data: members } = await supabase.from("members").select("username");
+ const { data: members } = await supabase
+  .from("members")
+  .select("username");
 
-  const results = await Promise.all(
-    (members ?? []).map(async (member) => {
+const cleanMembers = (members ?? [])
+  .map((m) => ({
+    username: String(m.username).trim(),
+  }))
+  .filter((m) => m.username.length > 0);
+
+const results = await Promise.all(
+  cleanMembers.map(async (member) => {
       const statsRes = await fetch(
         `https://api.chess.com/pub/player/${member.username.toLowerCase()}/stats`,
         {
@@ -110,15 +118,14 @@ export default async function UpdateRatingsPage() {
       const gamesToday = await getGamesToday(member.username);
 
       const snapshot = {
-        username: member.username,
-        rating: ratings.bestRating,
-        games: gamesToday,
-        rapid_rating: ratings.rapid,
-        blitz_rating: ratings.blitz,
-        bullet_rating: ratings.bullet,
-        best_mode: ratings.bestMode,
-      };
-
+  username: member.username.trim(),
+  rating: ratings.bestRating,
+  games: gamesToday,
+  rapid_rating: ratings.rapid,
+  blitz_rating: ratings.blitz,
+  bullet_rating: ratings.bullet,
+  best_mode: ratings.bestMode,
+};
       const { error } = await supabase.from("rating_snapshots").insert(snapshot);
 
       return {
