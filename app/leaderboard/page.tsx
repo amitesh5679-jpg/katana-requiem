@@ -121,6 +121,10 @@ function calculateLeaderboard(rows: Snapshot[]) {
 }
 
 export default async function LeaderboardPage() {
+  await fetch("https://katana-requiem.vercel.app/update-ratings?x=999", {
+  cache: "no-store",
+});
+
   const { data: snapshots } = await supabase
     .from("rating_snapshots")
     .select(
