@@ -10,10 +10,6 @@ type Snapshot = {
   rating: number;
   games: number | null;
   recorded_at: string;
-  rapid_rating: number | null;
-  blitz_rating: number | null;
-  bullet_rating: number | null;
-  best_mode: string | null;
 };
 
 function getDateLabel() {
@@ -76,8 +72,7 @@ function getClosestSnapshotBefore(rows: Snapshot[], targetDate: Date) {
 }
 
 function formatGain(value: number) {
-  if (value > 0) return `+${value}`;
-  return String(value);
+  return value > 0 ? `+${value}` : String(value);
 }
 
 function calculateLeaderboard(rows: Snapshot[]) {
@@ -86,12 +81,12 @@ function calculateLeaderboard(rows: Snapshot[]) {
   for (const row of rows) {
     const cleanUsername = row.username.trim();
 
-if (!grouped[cleanUsername]) grouped[cleanUsername] = [];
+    if (!grouped[cleanUsername]) grouped[cleanUsername] = [];
 
-grouped[cleanUsername].push({
-  ...row,
-  username: cleanUsername,
-});
+    grouped[cleanUsername].push({
+      ...row,
+      username: cleanUsername,
+    });
   }
 
   const startOfToday = getISTStartOfDay();
@@ -104,37 +99,30 @@ grouped[cleanUsername].push({
         new Date(a.recorded_at).getTime() - new Date(b.recorded_at).getTime()
     );
 
-    const first = snapshots[0];
     const latest = snapshots[snapshots.length - 1];
 
     const todayBase = getClosestSnapshotBefore(snapshots, startOfToday);
     const weekBase = getClosestSnapshotBefore(snapshots, startOfWeek);
     const monthBase = getClosestSnapshotBefore(snapshots, startOfMonth);
 
-    const latestGames = latest.games ?? 0;
-    const todayBaseGames = todayBase.games ?? 0;
-
     return {
       username,
-      currentRating: latest.rating,
-      netRating: latest.rating - first.rating,
       dailyGain: latest.rating - todayBase.rating,
       weeklyGain: latest.rating - weekBase.rating,
       monthlyGain: latest.rating - monthBase.rating,
-gamesToday: latest.games ?? 0,    };
+      gamesToday: latest.games ?? 0,
+    };
   });
 }
 
 export default async function LeaderboardPage() {
   await fetch("https://katana-requiem.vercel.app/update-ratings?x=999", {
-  cache: "no-store",
-});
+    cache: "no-store",
+  });
 
   const { data: snapshots } = await supabase
     .from("rating_snapshots")
-    .select(
-      "username,rating,games,recorded_at,rapid_rating,blitz_rating,bullet_rating,best_mode"
-    )
+    .select("username,rating,games,recorded_at")
     .order("recorded_at", { ascending: true });
 
   const { data: legends } = await supabase
@@ -178,60 +166,28 @@ export default async function LeaderboardPage() {
           </div>
 
           <div className="mt-6">
-            <Link
-              href="/"
-              className="border border-red-500 rounded-lg px-4 py-2 hover:bg-red-950/40"
-            >
+            <Link href="/" className="border border-red-500 rounded-lg px-4 py-2 hover:bg-red-950/40">
               ← Return to Main Gate
             </Link>
           </div>
         </div>
 
-        <div className="border border-zinc-700 rounded-xl p-5 mb-8 bg-black/40">
-          <h3 className="text-yellow-400 font-bold text-xl mb-3">
-            📜 Ranking Guide
-          </h3>
-
-          <div className="space-y-2 text-zinc-300">
-            <p>🔥 Growth Hashira — Highest net rating gain today.</p>
-            <p>⚡ Ascending Hashira — Highest net rating gain this week.</p>
-            <p>🌙 Demon Moon Ascension — Highest net rating gain this month.</p>
-            <p>⚔️ Battle Frenzy — Most games played today.</p>
-          </div>
-        </div>
-
-        <Section
-          title="🔥 Growth Hashira"
-          color="orange"
-          desc="The warriors whose flames burned brightest today."
-        >
-          <Rank rank="🥇" data={daily[0]} value={formatGain(daily[0]?.dailyGain ?? 0)} label="rating today" />
-          <Rank rank="🥈" data={daily[1]} value={formatGain(daily[1]?.dailyGain ?? 0)} label="rating today" />
-          <Rank rank="🥉" data={daily[2]} value={formatGain(daily[2]?.dailyGain ?? 0)} label="rating today" />
+        <Section title="🔥 Growth Hashira" color="orange" desc="Highest rating gain today.">
+          <Rank rank="🥇" name={daily[0]?.username} value={formatGain(daily[0]?.dailyGain ?? 0)} label="rating today" />
+          <Rank rank="🥈" name={daily[1]?.username} value={formatGain(daily[1]?.dailyGain ?? 0)} label="rating today" />
+          <Rank rank="🥉" name={daily[2]?.username} value={formatGain(daily[2]?.dailyGain ?? 0)} label="rating today" />
         </Section>
 
-        <Section
-          title="⚡ Ascending Hashira"
-          color="yellow"
-          desc="The relentless slayer whose progress echoed through the week."
-        >
-          <Rank rank="⚡" data={weekly[0]} value={formatGain(weekly[0]?.weeklyGain ?? 0)} label="weekly rating" />
+        <Section title="⚡ Ascending Hashira" color="yellow" desc="Highest rating gain this week.">
+          <Rank rank="⚡" name={weekly[0]?.username} value={formatGain(weekly[0]?.weeklyGain ?? 0)} label="weekly gain" />
         </Section>
 
-        <Section
-          title="🌙 Demon Moon Ascension"
-          color="purple"
-          desc="The rise that rivaled the Upper Moons themselves."
-        >
-          <Rank rank="🌙" data={monthly[0]} value={formatGain(monthly[0]?.monthlyGain ?? 0)} label="monthly rating" />
+        <Section title="🌙 Demon Moon Ascension" color="purple" desc="Highest rating gain this month.">
+          <Rank rank="🌙" name={monthly[0]?.username} value={formatGain(monthly[0]?.monthlyGain ?? 0)} label="monthly gain" />
         </Section>
 
-        <Section
-          title="⚔️ Battle Frenzy"
-          color="cyan"
-          desc="The warrior who fought the most battles today."
-        >
-          <Rank rank="⚔️" data={battle[0]} value={String(battle[0]?.gamesToday ?? 0)} label="games today" />
+        <Section title="⚔️ Battle Frenzy" color="cyan" desc="Most games played today.">
+          <Rank rank="⚔️" name={battle[0]?.username} value={String(battle[0]?.gamesToday ?? 0)} label="games today" />
         </Section>
 
         <div className="border border-zinc-700 rounded-xl p-6 mt-6 bg-black/40">
@@ -253,24 +209,12 @@ export default async function LeaderboardPage() {
                   <div className="text-purple-300 font-bold">
                     {legend.month} {legend.year}
                   </div>
-
                   <div className="text-zinc-300">🌙 {legend.title}</div>
-
                   <div className="text-yellow-400">{legend.username}</div>
                 </div>
               ))
             )}
           </div>
-        </div>
-
-        <div className="mt-10 border border-red-900 rounded-xl p-6 text-center bg-black/40 animate-pulse-glow">
-          <h2 className="text-2xl font-bold text-red-400">
-            ⚔️ SLAYER&apos;S OATH ⚔️
-          </h2>
-
-          <p className="text-zinc-300 italic mt-3">
-            The battles end. The rankings reset. But legends remain.
-          </p>
         </div>
       </div>
     </main>
@@ -306,18 +250,12 @@ function Section({
 
 function Rank({
   rank,
-  data,
+  name,
   value,
   label,
 }: {
   rank: string;
-  data:
-    | {
-        username: string;
-        currentRating: number;
-        netRating: number;
-      }
-    | undefined;
+  name: string | undefined;
   value: string;
   label: string;
 }) {
@@ -325,12 +263,9 @@ function Rank({
     <div className="border border-white/20 rounded-lg p-4 flex justify-between items-center bg-black/30">
       <div>
         <div className="font-bold">
-          {rank} {data?.username ?? "Awaiting Slayer"}
+          {rank} {name ?? "Awaiting Slayer"}
         </div>
-
-        <div className="text-sm text-zinc-500">
-          Current: {data?.currentRating ?? 0} • Net: {formatGain(data?.netRating ?? 0)}
-        </div>
+        <div className="text-sm text-zinc-500">Current Holder</div>
       </div>
 
       <div className="text-right">
