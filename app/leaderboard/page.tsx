@@ -185,9 +185,13 @@ export default async function LeaderboardPage() {
           </div>
 
           <div className="mt-6">
-            <Link href="/" className="border border-red-500 rounded-lg px-4 py-2 hover:bg-red-950/40">
-              ← Return to Main Gate
-            </Link>
+           <Link
+  href="/?v=title-update"
+  prefetch={false}
+  className="border border-red-500 rounded-lg px-4 py-2 hover:bg-red-950/40"
+>
+  ← Return to Main Gate
+</Link>
           </div>
         </div>
 
@@ -220,18 +224,7 @@ export default async function LeaderboardPage() {
           />
         </Section>
 
-        <Section
-          title="🔥 Rising Slayer"
-          desc="Biggest rating jump from the previous update to the latest update."
-          color="orange"
-        >
-          <PlayerCard
-            rank={1}
-            username={risingSlayer[0]?.username ?? "Awaiting Slayer"}
-            mainValue={formatDiff(risingSlayer[0]?.risingDifference ?? 0)}
-            subValue={`${risingSlayer[0]?.previousRating ?? 0} → ${risingSlayer[0]?.rating ?? 0}`}
-          />
-        </Section>
+       
 
         <Section
           title="🌅 Dawn Breathing Surge"
