@@ -12,10 +12,12 @@ export default function Sidebar() {
   const [newestMembers, setNewestMembers] = useState([]);
 
   const today = new Date();
+
   const dayName = today.toLocaleDateString("en-IN", {
     timeZone: "Asia/Kolkata",
     weekday: "long",
   });
+
   const dateLine = today.toLocaleDateString("en-IN", {
     timeZone: "Asia/Kolkata",
     day: "numeric",
@@ -39,30 +41,30 @@ export default function Sidebar() {
 
   return (
     <main style={main}>
-      <div style={glowOne} />
-      <div style={glowTwo} />
-      <div style={petalLayer}>
-        <span style={{ ...petal, left: "8%", animationDelay: "0s" }}>✧</span>
-        <span style={{ ...petal, left: "28%", animationDelay: "1.2s" }}>✦</span>
-        <span style={{ ...petal, left: "52%", animationDelay: "2s" }}>✧</span>
-        <span style={{ ...petal, left: "75%", animationDelay: ".6s" }}>✦</span>
-        <span style={{ ...petal, left: "91%", animationDelay: "3s" }}>✧</span>
+      <div style={moonGlow} />
+      <div style={bladeGlow} />
+
+      <div style={mistLayer}>
+        <span style={{ ...spark, left: "12%", animationDelay: "0s" }}>✧</span>
+        <span style={{ ...spark, left: "38%", animationDelay: "1.5s" }}>✦</span>
+        <span style={{ ...spark, left: "67%", animationDelay: ".7s" }}>✧</span>
+        <span style={{ ...spark, left: "88%", animationDelay: "2.3s" }}>✦</span>
       </div>
 
       <section style={hero}>
-        
+        <div style={crest}>月</div>
         <h1 style={clubTitle}>KATANA REQUIEM</h1>
-        <p style={heroLine}>For the warriors who still return to the board.</p>
+        <p style={heroLine}>For warriors who return, even after silence.</p>
       </section>
 
       <section style={dateCard}>
-        <div style={miniLabel}>MOON LOG</div>
+        <div style={label}>MOON RECORD</div>
         <div style={dateDay}>{dayName}</div>
         <div style={dateMain}>{dateLine}</div>
       </section>
 
       <section style={card}>
-        <h2 style={sectionTitle}>⚔️ Fresh Blades</h2>
+        <h2 style={sectionTitle}>⚔ Fresh Blades</h2>
         <p style={sectionNote}>Newest warriors at the gate.</p>
 
         {newestMembers.length ? (
@@ -78,20 +80,20 @@ export default function Sidebar() {
 
       <a href="/?v=title-update" target="_blank" style={linkCard}>
         <h2 style={sectionTitle}>🏯 Warrior Titles</h2>
-        <p style={text}>Hashira seats, honored names, and roles earned by presence.</p>
-        <b style={openText}>Enter the Title Hall →</b>
+        <p style={text}>Hashira seats, honored roles, and names carved into the hall.</p>
+        <b style={openText}>Enter Title Hall →</b>
       </a>
 
       <a href="/leaderboard" target="_blank" style={linkCard}>
         <h2 style={sectionTitle}>📈 Warrior Ranks</h2>
-        <p style={text}>Track the climb, the grind, and the rating battles.</p>
-        <b style={openText}>Open the Ranks →</b>
+        <p style={text}>The climb, the grind, and the battles that shape the corps.</p>
+        <b style={openText}>Open Ranks →</b>
       </a>
 
       <a href="https://lichess.org/training" target="_blank" style={linkCard}>
         <h2 style={sectionTitle}>🧩 Tactics Dojo</h2>
-        <p style={text}>A quiet training ground for sharper calculation.</p>
-        <b style={openText}>Begin Puzzle Training →</b>
+        <p style={text}>A silent training ground for sharper calculation.</p>
+        <b style={openText}>Begin Training →</b>
       </a>
 
       <section style={tribute}>
@@ -99,16 +101,21 @@ export default function Sidebar() {
       </section>
 
       <style>{`
-        @keyframes fall {
+        @keyframes drift {
           0% { transform: translateY(-30px) translateX(0) rotate(0deg); opacity: 0; }
-          15% { opacity: .75; }
-          55% { transform: translateY(430px) translateX(-18px) rotate(120deg); opacity: .5; }
-          100% { transform: translateY(900px) translateX(20px) rotate(260deg); opacity: 0; }
+          20% { opacity: .8; }
+          60% { opacity: .45; }
+          100% { transform: translateY(760px) translateX(24px) rotate(220deg); opacity: 0; }
         }
 
-        @keyframes pulse {
+        @keyframes breathe {
           0%, 100% { opacity: .45; transform: scale(1); }
-          50% { opacity: .75; transform: scale(1.08); }
+          50% { opacity: .85; transform: scale(1.07); }
+        }
+
+        @keyframes blade {
+          0%, 100% { opacity: .28; transform: translateX(-4px); }
+          50% { opacity: .55; transform: translateX(4px); }
         }
       `}</style>
     </main>
@@ -125,36 +132,37 @@ const main = {
   overflow: "hidden",
   color: "white",
   boxSizing: "border-box",
-  fontFamily: "'Cinzel', Georgia, 'Times New Roman', serif",
+  fontFamily: "Georgia, 'Times New Roman', serif",
   background:
-    "linear-gradient(180deg, rgba(1,7,20,.78), rgba(5,25,54,.86), rgba(1,7,20,.92))",
+    "linear-gradient(180deg, rgba(1,6,18,.86), rgba(6,22,48,.88), rgba(1,6,18,.95))",
 };
 
-const glowOne = {
+const moonGlow = {
   position: "absolute",
-  top: "-70px",
-  right: "-60px",
-  width: "170px",
-  height: "170px",
+  top: "-72px",
+  right: "-58px",
+  width: "180px",
+  height: "180px",
   borderRadius: "50%",
-  background: "radial-gradient(circle, rgba(125,211,252,.42), transparent 65%)",
-  animation: "pulse 5s ease-in-out infinite",
+  background: "radial-gradient(circle, rgba(125,211,252,.42), transparent 67%)",
+  animation: "breathe 6s ease-in-out infinite",
   zIndex: 0,
 };
 
-const glowTwo = {
+const bladeGlow = {
   position: "absolute",
-  bottom: "140px",
-  left: "-70px",
-  width: "150px",
-  height: "150px",
-  borderRadius: "50%",
-  background: "radial-gradient(circle, rgba(168,85,247,.28), transparent 65%)",
-  animation: "pulse 7s ease-in-out infinite",
+  top: "260px",
+  left: "-60px",
+  width: "220px",
+  height: "2px",
+  background:
+    "linear-gradient(90deg, transparent, rgba(125,211,252,.55), rgba(168,85,247,.45), transparent)",
+  transform: "rotate(-18deg)",
+  animation: "blade 5s ease-in-out infinite",
   zIndex: 0,
 };
 
-const petalLayer = {
+const mistLayer = {
   position: "absolute",
   inset: 0,
   pointerEvents: "none",
@@ -162,50 +170,47 @@ const petalLayer = {
   zIndex: 1,
 };
 
-const petal = {
+const spark = {
   position: "absolute",
-  top: "-24px",
-  color: "rgba(221,214,254,.78)",
-  fontSize: "15px",
+  top: "-25px",
+  color: "rgba(221,214,254,.82)",
+  fontSize: "14px",
   textShadow: "0 0 12px rgba(216,180,254,.9)",
-  animation: "fall 10s linear infinite",
+  animation: "drift 10s linear infinite",
 };
 
 const hero = {
   position: "relative",
   zIndex: 2,
   textAlign: "center",
-  border: "1px solid rgba(147,197,253,.65)",
-  borderRadius: "24px",
-  padding: "17px 12px",
+  border: "1px solid rgba(147,197,253,.62)",
+  borderRadius: "22px",
+  padding: "18px 12px",
   marginBottom: "14px",
   background:
-    "linear-gradient(180deg, rgba(15,23,42,.74), rgba(2,6,23,.72))",
+    "linear-gradient(180deg, rgba(15,23,42,.72), rgba(2,6,23,.78))",
   boxShadow:
-    "0 0 22px rgba(56,189,248,.28), inset 0 0 18px rgba(96,165,250,.08)",
+    "0 0 20px rgba(56,189,248,.25), inset 0 0 20px rgba(96,165,250,.08)",
 };
 
-const crestWrap = {
-  width: "92px",
-  height: "92px",
+const crest = {
+  width: "58px",
+  height: "58px",
   margin: "0 auto 10px",
-  padding: "4px",
-  borderRadius: "24px",
+  borderRadius: "50%",
+  display: "grid",
+  placeItems: "center",
+  fontSize: "30px",
+  color: "#e9d5ff",
   background:
-    "linear-gradient(135deg, rgba(125,211,252,.8), rgba(168,85,247,.45), rgba(2,6,23,.8))",
-  boxShadow: "0 0 22px rgba(125,211,252,.35)",
-};
-
-const logo = {
-  width: "100%",
-  height: "100%",
-  objectFit: "cover",
-  borderRadius: "20px",
+    "radial-gradient(circle, rgba(88,28,135,.75), rgba(15,23,42,.85))",
+  border: "1px solid rgba(216,180,254,.6)",
+  boxShadow: "0 0 22px rgba(168,85,247,.42)",
 };
 
 const clubTitle = {
   fontSize: "21px",
-  letterSpacing: "2.2px",
+  letterSpacing: "2.4px",
   margin: "6px 0",
   color: "#e0f2fe",
   textShadow: "0 0 14px rgba(56,189,248,.9)",
@@ -223,13 +228,14 @@ const heroLine = {
 const card = {
   position: "relative",
   zIndex: 2,
-  border: "1px solid rgba(96,165,250,.58)",
-  borderRadius: "18px",
+  border: "1px solid rgba(96,165,250,.55)",
+  borderRadius: "17px",
   padding: "14px",
   marginBottom: "14px",
   background:
-    "linear-gradient(180deg, rgba(3,7,18,.72), rgba(15,23,42,.62))",
-  boxShadow: "0 0 16px rgba(56,189,248,.20)",
+    "linear-gradient(180deg, rgba(3,7,18,.76), rgba(15,23,42,.64))",
+  boxShadow:
+    "0 0 15px rgba(56,189,248,.18), inset 0 0 14px rgba(125,211,252,.05)",
 };
 
 const dateCard = {
@@ -237,7 +243,7 @@ const dateCard = {
   textAlign: "center",
 };
 
-const miniLabel = {
+const label = {
   fontSize: "10px",
   color: "#7dd3fc",
   letterSpacing: "3px",
@@ -276,9 +282,9 @@ const sectionNote = {
 
 const memberBox = {
   background:
-    "linear-gradient(90deg, rgba(2,6,23,.9), rgba(12,74,110,.55), rgba(2,6,23,.9))",
-  border: "1px solid rgba(125,211,252,.72)",
-  borderRadius: "15px",
+    "linear-gradient(90deg, rgba(2,6,23,.94), rgba(12,74,110,.56), rgba(2,6,23,.94))",
+  border: "1px solid rgba(125,211,252,.7)",
+  borderRadius: "14px",
   padding: "11px",
   margin: "8px 0",
   textAlign: "center",
