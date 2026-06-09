@@ -24,9 +24,7 @@ export default function Sidebar() {
   });
 
   return (
-    <main style={main} className={cinzel.className}>
-      <div style={moonGlow} />
-      <div style={moonCore}>☾</div>
+<main style={main} className={cinzel.className}>      <div style={moonCore}>☾</div>
       <div style={oceanGlow} />
       <div style={softMist} />
 
@@ -134,6 +132,7 @@ export default function Sidebar() {
       <section style={tribute} className={cormorant.className}>
         🌸 Whispered_Blossom — the lantern remembers.
       </section>
+      
 
       <style>{`
         @keyframes starPulse {
