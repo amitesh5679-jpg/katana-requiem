@@ -24,7 +24,9 @@ function getRatings(data: any) {
 
 function getISTDayRangeUnix() {
   const now = new Date();
-  const istDate = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+  const istDate = new Date(
+    now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
+  );
 
   const y = istDate.getFullYear();
   const m = istDate.getMonth();
@@ -49,7 +51,37 @@ function getMonthsToCheck() {
   ];
 }
 
-async function getGamesToday(username: string) {
+function getResult(game: any, username: string) {
+  const user = username.toLowerCase();
+
+  const whiteUsername = game.white?.username?.toLowerCase();
+  const blackUsername = game.black?.username?.toLowerCase();
+
+  const player =
+    whiteUsername === user
+      ? game.white
+      : blackUsername === user
+      ? game.black
+      : null;
+
+  const result = player?.result;
+
+  if (result === "win") return "win";
+
+  if (
+    result === "checkmated" ||
+    result === "resigned" ||
+    result === "timeout" ||
+    result === "abandoned" ||
+    result === "lose"
+  ) {
+    return "loss";
+  }
+
+  return "draw";
+}
+
+async function getTodayStats(username: string) {
   const { startUnix, endUnix } = getISTDayRangeUnix();
   const allGames: any[] = [];
 
@@ -61,7 +93,8 @@ async function getGamesToday(username: string) {
       `https://api.chess.com/pub/player/${username.toLowerCase()}/games/${year}/${month}`,
       {
         headers: {
-          "User-Agent": "Katana Requiem leaderboard contact: shinigamigodme@gmail.com",
+          "User-Agent":
+            "Katana Requiem leaderboard contact: shinigamigodme@gmail.com",
         },
         cache: "no-store",
       }
@@ -79,10 +112,65 @@ async function getGamesToday(username: string) {
     uniqueGames.set(game.uuid ?? game.url, game);
   }
 
-  return [...uniqueGames.values()].filter((game: any) => {
-    if (!game.end_time) return false;
-    return game.end_time >= startUnix && game.end_time < endUnix;
-  }).length;
+  const games = [...uniqueGames.values()]
+    .filter((game: any) => game.end_time)
+    .sort((a: any, b: any) => b.end_time - a.end_time);
+
+  const todayGames = games.filter(
+    (game: any) => game.end_time >= startUnix && game.end_time < endUnix
+  );
+
+  const winsToday = todayGames.filter(
+    (game: any) => getResult(game, username) === "win"
+  ).length;
+
+  let currentWinStreak = 0;
+
+  for (const game of games) {
+    const result = getResult(game, username);
+
+    if (result === "win") {
+      currentWinStreak++;
+    } else {
+      break;
+    }
+  }
+
+ const weekStart = new Date();
+const istNow = new Date(
+  weekStart.toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
+);
+
+const day = istNow.getDay();
+const diffToMonday = day === 0 ? 6 : day - 1;
+
+const mondayIST = new Date(
+  Date.UTC(
+    istNow.getFullYear(),
+    istNow.getMonth(),
+    istNow.getDate() - diffToMonday,
+    -5,
+    -30,
+    0
+  )
+);
+
+const weekStartUnix = Math.floor(mondayIST.getTime() / 1000);
+
+const weekGames = games.filter(
+  (game: any) => game.end_time >= weekStartUnix
+);
+
+const winsThisWeek = weekGames.filter(
+  (game: any) => getResult(game, username) === "win"
+).length;
+
+return {
+  gamesToday: todayGames.length,
+  winsToday,
+  winsThisWeek,
+  currentWinStreak,
+};
 }
 
 export default async function UpdateRatingsPage() {
@@ -99,7 +187,8 @@ export default async function UpdateRatingsPage() {
           `https://api.chess.com/pub/player/${member.username.toLowerCase()}/stats`,
           {
             headers: {
-              "User-Agent": "Katana Requiem leaderboard contact: shinigamigodme@gmail.com",
+              "User-Agent":
+                "Katana Requiem leaderboard contact: shinigamigodme@gmail.com",
             },
             cache: "no-store",
           }
@@ -107,19 +196,24 @@ export default async function UpdateRatingsPage() {
 
         const stats = await statsRes.json();
         const ratings = getRatings(stats);
-        const gamesToday = await getGamesToday(member.username);
+        const todayStats = await getTodayStats(member.username);
 
         const snapshot = {
           username: member.username,
           rating: ratings.bestRating,
-          games: gamesToday,
+          games: todayStats.gamesToday,
+          wins_today: todayStats.winsToday,
+          wins_this_week: todayStats.winsThisWeek,
+          current_win_streak: todayStats.currentWinStreak,
           rapid_rating: ratings.rapid,
           blitz_rating: ratings.blitz,
           bullet_rating: ratings.bullet,
           best_mode: ratings.bestMode,
         };
 
-        const { error } = await supabase.from("rating_snapshots").insert(snapshot);
+        const { error } = await supabase
+          .from("rating_snapshots")
+          .insert(snapshot);
 
         return {
           ...snapshot,
@@ -131,6 +225,8 @@ export default async function UpdateRatingsPage() {
           username: member.username,
           rating: 0,
           games: 0,
+          wins_today: 0,
+          current_win_streak: 0,
           rapid_rating: 0,
           blitz_rating: 0,
           bullet_rating: 0,
@@ -142,78 +238,58 @@ export default async function UpdateRatingsPage() {
     })
   );
 
-  const mostGames = [...results].sort((a, b) => b.games - a.games);
-  const highestRating = [...results].sort((a, b) => b.rating - a.rating);
-  const failed = results.filter((r) => !r.saved);
+  const dailyGrinder = [...results].sort((a, b) => b.games - a.games);
+  const demonSlayer = [...results].sort((a, b) => b.wins_today - a.wins_today);
+  const consecutiveKing = [...results].sort(
+    (a, b) => b.current_win_streak - a.current_win_streak
+  );
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-black via-[#090303] to-black text-white p-6">
+    <main className="min-h-screen bg-black text-white p-6">
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-10">
-          <h1 className="text-5xl font-bold text-red-500">⚔️ Ratings Update Chamber ⚔️</h1>
-          <p className="text-zinc-400 mt-4">
-            Snapshots updated using IST day timeline.
-          </p>
-        </div>
+        <h1 className="text-4xl font-bold text-red-500">
+          ⚔️ Ratings Update Chamber ⚔️
+        </h1>
 
-        <Section title="⚔️ Most Games Played Today" color="cyan">
-          {mostGames.slice(0, 5).map((player, index) => (
+        <p className="text-zinc-400 mt-3">
+          Updated games, wins, streaks and ratings.
+        </p>
+
+        <Section title="⚔️ Daily Grinder">
+          {dailyGrinder.slice(0, 3).map((player, index) => (
             <PlayerCard
               key={player.username}
               rank={index + 1}
               username={player.username}
               mainValue={`${player.games} games`}
-              subValue={`Best: ${player.rating} ${player.best_mode}`}
+              subValue={`${player.wins_today} wins today`}
             />
           ))}
         </Section>
 
-        <Section title="👑 Highest Current Rating" color="yellow">
-          {highestRating.slice(0, 5).map((player, index) => (
+        <Section title="👹 Demon Slayer">
+          {demonSlayer.slice(0, 3).map((player, index) => (
             <PlayerCard
               key={player.username}
               rank={index + 1}
               username={player.username}
-              mainValue={`${player.rating}`}
-              subValue={`Mode: ${player.best_mode}`}
+              mainValue={`${player.wins_today} wins`}
+              subValue={`${player.games} games today`}
             />
           ))}
         </Section>
 
-        <Section title="📜 All Updated Players" color="red">
-          <div className="grid md:grid-cols-2 gap-4">
-            {results.map((player) => (
-              <div
-                key={player.username}
-                className="border border-white/10 rounded-xl p-4 bg-black/40"
-              >
-                <div className="font-bold text-red-300">{player.username}</div>
-                <div className="text-zinc-300 mt-2">Rating: {player.rating}</div>
-                <div className="text-zinc-300">Games Today: {player.games}</div>
-                <div className="text-zinc-400 text-sm mt-2">
-                  Rapid {player.rapid_rating} • Blitz {player.blitz_rating} • Bullet {player.bullet_rating}
-                </div>
-                <div className="text-xs mt-2">
-                  {player.saved ? (
-                    <span className="text-green-400">Saved successfully</span>
-                  ) : (
-                    <span className="text-red-400">Failed: {player.error}</span>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
+        <Section title="🔥 Consecutive King">
+          {consecutiveKing.slice(0, 3).map((player, index) => (
+            <PlayerCard
+              key={player.username}
+              rank={index + 1}
+              username={player.username}
+              mainValue={`${player.current_win_streak} streak`}
+              subValue={`Current active win streak`}
+            />
+          ))}
         </Section>
-
-        {failed.length > 0 && (
-          <Section title="⚠️ Failed Updates" color="purple">
-            {failed.map((player) => (
-              <div key={player.username} className="text-red-300">
-                {player.username}: {player.error}
-              </div>
-            ))}
-          </Section>
-        )}
       </div>
     </main>
   );
@@ -221,22 +297,13 @@ export default async function UpdateRatingsPage() {
 
 function Section({
   title,
-  color,
   children,
 }: {
   title: string;
-  color: "cyan" | "yellow" | "red" | "purple";
   children: React.ReactNode;
 }) {
-  const style = {
-    cyan: "border-cyan-500 bg-cyan-950/20",
-    yellow: "border-yellow-500 bg-yellow-950/20",
-    red: "border-red-500 bg-red-950/20",
-    purple: "border-purple-500 bg-purple-950/20",
-  };
-
   return (
-    <section className={`border rounded-xl p-6 mb-6 ${style[color]}`}>
+    <section className="border border-red-700 rounded-xl p-5 mt-6 bg-red-950/20">
       <h2 className="text-2xl font-bold mb-4">{title}</h2>
       <div className="space-y-3">{children}</div>
     </section>
@@ -254,10 +321,11 @@ function PlayerCard({
   mainValue: string;
   subValue: string;
 }) {
-  const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : `#${rank}`;
+  const medal =
+    rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : `#${rank}`;
 
   return (
-    <div className="border border-white/20 rounded-lg p-4 flex justify-between items-center bg-black/40">
+    <div className="border border-white/20 rounded-lg p-4 flex justify-between bg-black/40">
       <div>
         <div className="font-bold">
           {medal} {username}

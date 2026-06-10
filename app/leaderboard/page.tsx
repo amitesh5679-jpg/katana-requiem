@@ -9,9 +9,9 @@ type Snapshot = {
   username: string;
   rating: number;
   games: number | null;
-  rapid_rating: number | null;
-  blitz_rating: number | null;
-  bullet_rating: number | null;
+  wins_today: number | null;
+  wins_this_week: number | null;
+  current_win_streak: number | null;
   best_mode: string | null;
   recorded_at: string;
 };
@@ -24,10 +24,12 @@ function getDateLabel() {
     day: "numeric",
   });
 
-  const month = now.toLocaleString("en-IN", {
-    timeZone: "Asia/Kolkata",
-    month: "long",
-  }).toUpperCase();
+  const month = now
+    .toLocaleString("en-IN", {
+      timeZone: "Asia/Kolkata",
+      month: "long",
+    })
+    .toUpperCase();
 
   const year = now.toLocaleString("en-IN", {
     timeZone: "Asia/Kolkata",
@@ -37,56 +39,8 @@ function getDateLabel() {
   return `DAY ${day} • MONTH OF ${month} • YEAR ${year}`;
 }
 
-function getISTDate() {
-  return new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
-}
-
-function getISTStartOfDay() {
-  const ist = getISTDate();
-  return new Date(Date.UTC(ist.getFullYear(), ist.getMonth(), ist.getDate(), -5, -30, 0));
-}
-
-function getISTStartOfWeek() {
-  const ist = getISTDate();
-  const day = ist.getDay();
-  const diffToMonday = day === 0 ? 6 : day - 1;
-
-  return new Date(
-    Date.UTC(
-      ist.getFullYear(),
-      ist.getMonth(),
-      ist.getDate() - diffToMonday,
-      -5,
-      -30,
-      0
-    )
-  );
-}
-
-function getISTStartOfMonth() {
-  const ist = getISTDate();
-  return new Date(Date.UTC(ist.getFullYear(), ist.getMonth(), 1, -5, -30, 0));
-}
-
-function formatDiff(value: number) {
-  if (value > 0) return `+${value}`;
-  return String(value);
-}
-
-function getBaseSnapshot(snapshots: Snapshot[], target: Date) {
-  const beforeTarget = snapshots.find(
-    (s) => new Date(s.recorded_at).getTime() <= target.getTime()
-  );
-
-  return beforeTarget ?? snapshots[snapshots.length - 1];
-}
-
 function getPlayerData(rows: Snapshot[]) {
   const grouped = new Map<string, Snapshot[]>();
-
-  const startOfToday = getISTStartOfDay();
-  const startOfWeek = getISTStartOfWeek();
-  const startOfMonth = getISTStartOfMonth();
 
   for (const row of rows) {
     const username = row.username.trim();
@@ -103,29 +57,15 @@ function getPlayerData(rows: Snapshot[]) {
     );
 
     const latest = snapshots[0];
-    const previous = snapshots[1] ?? latest;
-
-    const dayBase = getBaseSnapshot(snapshots, startOfToday);
-    const weekBase = getBaseSnapshot(snapshots, startOfWeek);
-    const monthBase = getBaseSnapshot(snapshots, startOfMonth);
 
     return {
       username,
-      rating: latest.rating,
-      games: latest.games ?? 0,
+      rating: latest.rating ?? 0,
+      gamesToday: latest.games ?? 0,
+      winsToday: latest.wins_today ?? 0,
+      winsThisWeek: latest.wins_this_week ?? 0,
+      currentWinStreak: latest.current_win_streak ?? 0,
       bestMode: latest.best_mode ?? "Unknown",
-
-      previousRating: previous.rating,
-      risingDifference: latest.rating - previous.rating,
-
-      dayBaseRating: dayBase.rating,
-      todayIncrease: latest.rating - dayBase.rating,
-
-      weekBaseRating: weekBase.rating,
-      weekIncrease: latest.rating - weekBase.rating,
-
-      monthBaseRating: monthBase.rating,
-      monthIncrease: latest.rating - monthBase.rating,
     };
   });
 }
@@ -138,39 +78,58 @@ export default async function LeaderboardPage() {
   const { data: snapshots } = await supabase
     .from("rating_snapshots")
     .select(
-      "username,rating,games,rapid_rating,blitz_rating,bullet_rating,best_mode,recorded_at"
+      "username,rating,games,wins_today,wins_this_week,current_win_streak,best_mode,recorded_at"
     )
     .order("recorded_at", { ascending: false });
 
-  const { data: legends } = await supabase
-    .from("hall_of_legends")
-    .select("username,title,month,year")
-    .order("created_at", { ascending: false });
-
   const players = getPlayerData((snapshots ?? []) as Snapshot[]);
 
-  const highestRating = [...players].sort((a, b) => b.rating - a.rating);
-  const mostGames = [...players].sort((a, b) => b.games - a.games);
-  const risingSlayer = [...players].sort((a, b) => b.risingDifference - a.risingDifference);
-  const dailySurge = [...players].sort((a, b) => b.todayIncrease - a.todayIncrease);
-  const weeklySurge = [...players].sort((a, b) => b.weekIncrease - a.weekIncrease);
-  const monthlySurge = [...players].sort((a, b) => b.monthIncrease - a.monthIncrease);
+  const crownedRatingLords = [...players].sort((a, b) => b.rating - a.rating);
+  const dailyGrinder = [...players].sort((a, b) => b.gamesToday - a.gamesToday);
+  const demonSlayer = [...players].sort((a, b) => b.winsToday - a.winsToday);
+  const consecutiveKing = [...players].sort(
+    (a, b) => b.currentWinStreak - a.currentWinStreak
+  );
+  const moonHunter = [...players].sort(
+    (a, b) => b.winsThisWeek - a.winsThisWeek
+  );
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-black via-[#090303] to-black text-white p-6">
-      <div className="max-w-6xl mx-auto">
+    <main className="relative min-h-screen overflow-hidden bg-[#030303] text-white p-6">
+      <div className="training-bg" />
+
+<div className="moon-orb" />
+
+<div className="fog fog-one" />
+<div className="fog fog-two" />
+
+<div className="falling-leaves">
+  {Array.from({ length: 18 }).map((_, i) => (
+    <span key={i} className={`leaf leaf-${i + 1}`}>
+      ❦
+    </span>
+  ))}
+</div>
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#3b0a0a_0%,transparent_35%),linear-gradient(to_bottom,#050505,#120505,#020202)]" />
+      <div className="absolute top-10 right-10 h-40 w-40 rounded-full bg-yellow-200/10 blur-sm" />
+      <div className="absolute inset-0 bg-[linear-gradient(120deg,transparent,rgba(255,255,255,.04),transparent)]" />
+      <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-red-950/30 to-transparent" />
+
+      <div className="relative max-w-6xl mx-auto">
         <div className="text-center mb-10">
-          <h1 className="text-5xl font-bold text-red-500 animate-pulse-glow">
+          <h1 className="text-5xl font-bold text-red-500 drop-shadow-[0_0_20px_rgba(239,68,68,.7)]">
             ⚔️ KATANA REQUIEM ⚔️
           </h1>
 
-          <h2 className="text-2xl text-yellow-400 mt-3">Ranking Chamber</h2>
+          <h2 className="text-2xl text-yellow-400 mt-3">
+            Hashira Training Ground
+          </h2>
 
           <p className="text-zinc-400 mt-4 italic">
-            Every Master Was Once Defeated. Every Legend Was Once Unranked.
+            Train. Fight. Rise. Let the rankings remember your name.
           </p>
 
-          <div className="mt-5 inline-block border border-red-700 rounded-xl px-5 py-3 bg-red-950/20 animate-pulse-glow">
+          <div className="mt-5 inline-block border border-red-700 rounded-xl px-5 py-3 bg-black/50 shadow-[0_0_25px_rgba(127,29,29,.6)]">
             <div className="text-red-400 text-sm tracking-[0.3em]">
               ⚔ CURRENT ERA ⚔
             </div>
@@ -180,119 +139,99 @@ export default async function LeaderboardPage() {
             </div>
 
             <div className="text-zinc-500 text-xs mt-2">
-              Latest data synced using IST timeline.
+              Synced with IST timeline.
             </div>
           </div>
 
           <div className="mt-6">
-           <Link
-  href="/?v=title-update"
-  prefetch={false}
-  className="border border-red-500 rounded-lg px-4 py-2 hover:bg-red-950/40"
->
-  ← Return to Main Gate
-</Link>
+            <Link
+              href="/?v=title-update"
+              prefetch={false}
+              className="border border-red-500 rounded-lg px-4 py-2 hover:bg-red-950/40"
+            >
+              ← Return to Main Gate
+            </Link>
           </div>
         </div>
 
-        <Section
+        <LeaderboardSection
           title="👑 Crowned Rating Lords"
-          desc="Top 3 warriors with the highest current rating."
+          desc="Highest current rating."
           color="yellow"
-        >
-          {highestRating.slice(0, 3).map((player, index) => (
-            <PlayerCard
-              key={player.username}
-              rank={index + 1}
-              username={player.username}
-              mainValue={`${player.rating}`}
-              subValue={`Best Mode: ${player.bestMode}`}
-            />
-          ))}
-        </Section>
+          players={crownedRatingLords}
+          value={(p) => `${p.rating}`}
+          sub={(p) => `Best Mode: ${p.bestMode}`}
+        />
 
-        <Section
-          title="⚔️ Battle Frenzy Champion"
-          desc="The warrior who played the most games today."
+        <LeaderboardSection
+          title="⚔️ Daily Grinder"
+          desc="Most games played today."
           color="cyan"
-        >
-          <PlayerCard
-            rank={1}
-            username={mostGames[0]?.username ?? "Awaiting Warrior"}
-            mainValue={`${mostGames[0]?.games ?? 0} games`}
-            subValue={`Rating: ${mostGames[0]?.rating ?? 0}`}
-          />
-        </Section>
+          players={dailyGrinder}
+          value={(p) => `${p.gamesToday} games`}
+          sub={(p) => `${p.winsToday} wins today`}
+        />
 
-       
-
-        <Section
-          title="🌅 Dawn Breathing Surge"
-          desc="Highest rating gain today, calculated from the start of the IST day."
+        <LeaderboardSection
+          title="👹 Demon Slayer"
+          desc="Most wins today."
           color="red"
-        >
-          <PlayerCard
-            rank={1}
-            username={dailySurge[0]?.username ?? "Awaiting Slayer"}
-            mainValue={formatDiff(dailySurge[0]?.todayIncrease ?? 0)}
-            subValue={`${dailySurge[0]?.dayBaseRating ?? 0} → ${dailySurge[0]?.rating ?? 0} today`}
-          />
-        </Section>
+          players={demonSlayer}
+          value={(p) => `${p.winsToday} wins`}
+          sub={(p) => `${p.gamesToday} games today`}
+        />
 
-        <Section
-          title="⚡ Thunder Week Ascension"
-          desc="Highest rating gain this week, calculated from Monday 00:00 IST."
+        <LeaderboardSection
+          title="🔥 Consecutive King"
+          desc="Current active win streak."
+          color="orange"
+          players={consecutiveKing}
+          value={(p) => `${p.currentWinStreak} streak`}
+          sub={() => "Active win streak"}
+        />
+
+        <LeaderboardSection
+          title="🌙 Moon Hunter"
+          desc="Most wins this week."
           color="purple"
-        >
-          <PlayerCard
-            rank={1}
-            username={weeklySurge[0]?.username ?? "Awaiting Slayer"}
-            mainValue={formatDiff(weeklySurge[0]?.weekIncrease ?? 0)}
-            subValue={`${weeklySurge[0]?.weekBaseRating ?? 0} → ${weeklySurge[0]?.rating ?? 0} this week`}
-          />
-        </Section>
-
-        <Section
-          title="🌙 Moonlit Month Rise"
-          desc="Highest rating gain this month, calculated from the 1st day of the month in IST."
-          color="blue"
-        >
-          <PlayerCard
-            rank={1}
-            username={monthlySurge[0]?.username ?? "Awaiting Slayer"}
-            mainValue={formatDiff(monthlySurge[0]?.monthIncrease ?? 0)}
-            subValue={`${monthlySurge[0]?.monthBaseRating ?? 0} → ${monthlySurge[0]?.rating ?? 0} this month`}
-          />
-        </Section>
-
-        <div className="border border-zinc-700 rounded-xl p-6 mt-6 bg-black/40">
-          <h2 className="text-3xl font-bold">🏛 Hall of Legends</h2>
-
-          <p className="text-zinc-400 mt-2">
-            Monthly legends and permanent title holders.
-          </p>
-
-          <div className="mt-6 space-y-4">
-            {(legends ?? []).length === 0 ? (
-              <div className="text-zinc-500">Awaiting the first legend...</div>
-            ) : (
-              (legends ?? []).map((legend) => (
-                <div
-                  key={`${legend.username}-${legend.month}-${legend.year}`}
-                  className="border-l-4 border-purple-500 pl-4"
-                >
-                  <div className="text-purple-300 font-bold">
-                    {legend.month} {legend.year}
-                  </div>
-                  <div className="text-zinc-300">🌙 {legend.title}</div>
-                  <div className="text-yellow-400">{legend.username}</div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
+          players={moonHunter}
+          value={(p) => `${p.winsThisWeek} wins`}
+          sub={(p) => `${p.winsToday} wins today`}
+        />
       </div>
     </main>
+  );
+}
+
+type Player = ReturnType<typeof getPlayerData>[number];
+
+function LeaderboardSection({
+  title,
+  desc,
+  color,
+  players,
+  value,
+  sub,
+}: {
+  title: string;
+  desc: string;
+  color: "yellow" | "cyan" | "red" | "orange" | "purple";
+  players: Player[];
+  value: (player: Player) => string;
+  sub: (player: Player) => string;
+}) {
+  return (
+    <Section title={title} desc={desc} color={color}>
+      {players.slice(0, 3).map((player, index) => (
+        <PlayerCard
+          key={player.username}
+          rank={index + 1}
+          username={player.username}
+          mainValue={value(player)}
+          subValue={sub(player)}
+        />
+      ))}
+    </Section>
   );
 }
 
@@ -304,23 +243,38 @@ function Section({
 }: {
   title: string;
   desc: string;
-  color: "yellow" | "cyan" | "orange" | "red" | "purple" | "blue";
+  color: "yellow" | "cyan" | "red" | "orange" | "purple";
   children: ReactNode;
 }) {
   const style = {
-    yellow: "border-yellow-500 bg-yellow-950/20 text-yellow-300",
-    cyan: "border-cyan-500 bg-cyan-950/20 text-cyan-300",
-    orange: "border-orange-500 bg-orange-950/20 text-orange-300",
-    red: "border-red-500 bg-red-950/20 text-red-300",
-    purple: "border-purple-500 bg-purple-950/20 text-purple-300",
-    blue: "border-blue-500 bg-blue-950/20 text-blue-300",
+    yellow: "border-yellow-500/70 bg-yellow-950/20 text-yellow-300 shadow-yellow-500/10",
+    cyan: "border-cyan-500/70 bg-cyan-950/20 text-cyan-300 shadow-cyan-500/10",
+    red: "border-red-500/70 bg-red-950/20 text-red-300 shadow-red-500/10",
+    orange: "border-orange-500/70 bg-orange-950/20 text-orange-300 shadow-orange-500/10",
+    purple: "border-purple-500/70 bg-purple-950/20 text-purple-300 shadow-purple-500/10",
   };
 
   return (
-    <section className={`border rounded-xl p-6 mb-6 animate-pulse-glow ${style[color]}`}>
-      <h2 className="text-3xl font-bold">{title}</h2>
-      <p className="text-zinc-400 mt-2">{desc}</p>
-      <div className="mt-4 space-y-3">{children}</div>
+    <section
+      className={`relative overflow-hidden border rounded-3xl p-6 mb-8 backdrop-blur-md shadow-2xl ${style[color]}`}
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-white/8 via-transparent to-black/40 pointer-events-none" />
+      <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/10 blur-3xl pointer-events-none" />
+
+      <div className="relative">
+        <div className="flex items-center justify-between gap-4 border-b border-white/10 pb-4">
+          <div>
+            <h2 className="text-3xl font-black tracking-wide">{title}</h2>
+            <p className="text-zinc-400 mt-2">{desc}</p>
+          </div>
+
+          <div className="hidden md:block text-xs tracking-[0.35em] text-zinc-500">
+            TOP 3
+          </div>
+        </div>
+
+        <div className="mt-6 grid md:grid-cols-3 gap-5">{children}</div>
+      </div>
     </section>
   );
 }
@@ -339,16 +293,40 @@ function PlayerCard({
   const medal =
     rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : `#${rank}`;
 
+  const rankStyle =
+  rank === 1
+    ? "md:-translate-y-4 md:scale-110 border-yellow-400/70 bg-gradient-to-b from-yellow-950/40 to-black/70 shadow-[0_0_35px_rgba(250,204,21,.25)]"
+    : rank === 2
+    ? "border-zinc-300/40 bg-gradient-to-b from-zinc-800/35 to-black/60"
+    : "border-orange-500/40 bg-gradient-to-b from-orange-950/30 to-black/60";
   return (
-    <div className="border border-white/20 rounded-lg p-4 flex justify-between items-center bg-black/30">
-      <div>
-        <div className="font-bold">
-          {medal} {username}
-        </div>
-        <div className="text-sm text-zinc-500">{subValue}</div>
-      </div>
+    <div
+      className={`relative overflow-hidden rounded-2xl p-5 border ${rankStyle} shadow-[0_0_24px_rgba(0,0,0,.65)] transition-transform duration-300 hover:-translate-y-1`}
+    >
+      <div className="absolute inset-0 bg-[linear-gradient(120deg,transparent,rgba(255,255,255,.08),transparent)] opacity-60 pointer-events-none" />
 
-      <div className="text-green-400 text-xl font-bold">{mainValue}</div>
+      <div className="relative">
+        <div className="flex items-start justify-between gap-3">
+          <div className="text-4xl">{medal}</div>
+
+          <div className="text-xs tracking-[0.25em] text-zinc-500">
+            RANK {rank}
+          </div>
+        </div>
+
+        <div className="font-black mt-4 text-lg break-words text-white">
+          {username}
+        </div>
+
+        <div className="text-sm text-zinc-500 mt-1">{subValue}</div>
+
+        <div className="mt-5 rounded-xl border border-white/10 bg-black/40 px-4 py-3">
+          <div className="text-xs text-zinc-500 tracking-[0.2em]">SCORE</div>
+          <div className="text-green-400 text-3xl font-black mt-1">
+            {mainValue}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
