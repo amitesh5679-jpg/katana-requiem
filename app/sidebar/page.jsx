@@ -1,6 +1,6 @@
 "use client";
-
 import { Cinzel, Cormorant_Garamond } from "next/font/google";
+import { oaths } from "@/lib/oath";
 
 const cinzel = Cinzel({ subsets: ["latin"], weight: ["600", "700"] });
 const cormorant = Cormorant_Garamond({
@@ -10,6 +10,12 @@ const cormorant = Cormorant_Garamond({
 
 export default function Sidebar() {
   const today = new Date();
+  const dayOfYear = Math.floor(
+  (today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) /
+    86400000
+);
+
+const todayOath = oaths[dayOfYear % oaths.length];
 
   const dayName = today.toLocaleDateString("en-IN", {
     timeZone: "Asia/Kolkata",
@@ -50,7 +56,17 @@ export default function Sidebar() {
           {dateLine}
         </div>
       </section>
+<section style={oathCard}>
+  <div style={label}>📜 TODAY'S OATH</div>
 
+  <p style={oathText} className={cormorant.className}>
+    "{todayOath.text}"
+  </p>
+
+  <div style={oathAuthor}>
+    — {todayOath.author}
+  </div>
+</section>
       <section style={logPoseCard}>
   <div style={logBadge}>GRAND LINE RECORD</div>
 
@@ -113,13 +129,7 @@ export default function Sidebar() {
         <b style={openText}>Enter Title Hall →</b>
       </a>
 
-      <a href="/leaderboard" target="_blank" style={linkCard}>
-        <h2 style={sectionTitle}>📈 Warrior Ranks</h2>
-        <p style={text} className={cormorant.className}>
-          The climb, the grind, and the battles that shape the corps.
-        </p>
-        <b style={openText}>Open Ranks →</b>
-      </a>
+      
 
       <a href="https://lichess.org/training" target="_blank" style={linkCard}>
         <h2 style={sectionTitle}>🧩 Tactics Dojo</h2>
@@ -364,7 +374,28 @@ const dateMain = {
   color: "#bfdbfe",
   marginTop: "4px",
 };
+const oathCard = {
+  ...card,
+  textAlign: "center",
+  border: "1px solid rgba(216,180,254,.35)",
+  background:
+    "linear-gradient(180deg, rgba(18,24,45,.85), rgba(5,10,20,.9))",
+};
 
+const oathText = {
+  color: "#f8fafc",
+  fontSize: "17px",
+  lineHeight: "1.5",
+  fontStyle: "italic",
+  marginTop: "10px",
+};
+
+const oathAuthor = {
+  color: "#7dd3fc",
+  marginTop: "12px",
+  fontSize: "13px",
+  letterSpacing: "1px",
+};
 const logPoseCard = {
   ...card,
   textAlign: "center",
