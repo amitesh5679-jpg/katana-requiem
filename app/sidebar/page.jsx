@@ -1,4 +1,5 @@
 "use client";
+
 import { Cinzel, Cormorant_Garamond } from "next/font/google";
 import { oaths } from "@/lib/oath";
 
@@ -10,12 +11,13 @@ const cormorant = Cormorant_Garamond({
 
 export default function Sidebar() {
   const today = new Date();
-  const dayOfYear = Math.floor(
-  (today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) /
-    86400000
-);
 
-const todayOath = oaths[dayOfYear % oaths.length];
+  const dayOfYear = Math.floor(
+    (today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) /
+      86400000
+  );
+
+  const todayOath = oaths[dayOfYear % oaths.length];
 
   const dayName = today.toLocaleDateString("en-IN", {
     timeZone: "Asia/Kolkata",
@@ -30,170 +32,152 @@ const todayOath = oaths[dayOfYear % oaths.length];
   });
 
   return (
-<main style={main} className={cinzel.className}>      <div style={moonCore}>☾</div>
-      <div style={oceanGlow} />
+    <main style={main} className={cinzel.className}>
+      <div style={goldCore}>✦</div>
+      <div style={goldGlow} />
       <div style={softMist} />
 
       <span className="star" style={{ top: "90px", left: "42px" }}>✦</span>
       <span className="star" style={{ top: "210px", right: "36px", animationDelay: "1.5s" }}>✧</span>
       <span className="star" style={{ top: "420px", left: "28px", animationDelay: ".7s" }}>✦</span>
 
-      <span className="petal" style={{ left: "20%", animationDelay: "1s" }}>🌸</span>
-      <span className="petal" style={{ left: "72%", animationDelay: "4s" }}>🌸</span>
-
       <section style={hero}>
-        <div style={crest}>月</div>
-        <h1 style={clubTitle}>KATANA REQUIEM</h1>
+        <div style={crest}>升</div>
+
+        <h1 style={clubTitle}>ASCENDANT</h1>
+
         <p style={heroLine} className={cormorant.className}>
-          A quiet harbor for warriors who return.
+          Rise above. Never finished.
         </p>
       </section>
 
       <section style={dateCard}>
-        <div style={label}>MOON RECORD</div>
+        <div style={label}>ASCENSION LOG</div>
+
         <div style={dateDay}>{dayName}</div>
+
         <div style={dateMain} className={cormorant.className}>
           {dateLine}
         </div>
       </section>
-<section style={oathCard}>
-  <div style={label}>📜 TODAY'S OATH</div>
 
-  <p style={oathText} className={cormorant.className}>
-    "{todayOath.text}"
-  </p>
+      <section style={oathCard}>
+        <div style={label}>📜 TODAY'S OATH</div>
 
-  <div style={oathAuthor}>
-    — {todayOath.author}
-  </div>
-</section>
-      <section style={logPoseCard}>
-  <div style={logBadge}>GRAND LINE RECORD</div>
-
-  <h2 style={logTitle}>
-    ⚓ KATANA REQUIEM
-    <br />
-    LOG POSE
-  </h2>
-
-  <div style={poseStage}>
-    <div style={seaLineOne} />
-    <div style={seaLineTwo} />
-
-    <div style={logPoseCircle}>
-      <div style={compassN}>N</div>
-      <div style={compassE}>E</div>
-      <div style={compassS}>S</div>
-      <div style={compassW}>W</div>
-
-      <div style={glassRing} />
-      <div style={innerRing} />
-      <div className="needle" />
-      <div style={needleCenter} />
-    </div>
-  </div>
-
-  <div className="waveBox">
-    <span className="wave">〜〜〜</span>
-    <span className="ship">⛵</span>
-    <span className="wave">〜〜〜</span>
-  </div>
-
-  <div style={logInfoBox}>
-    <div style={logLabel}>Destination</div>
-    <div style={logValue} className={cormorant.className}>
-      To Live Without<br />
-      Regrets
-    </div>
-
-    <div style={divider} />
-
-    <div style={logLabel}>Direction</div>
-    <div style={logValue} className={cormorant.className}>
-      Still Pointing<br />
-      Forward.
-    </div>
-  </div>
-
-  <p style={logFooter} className={cormorant.className}>
-    Even when the sea gets rough,<br />
-    the needle remembers the dream.
-  </p>
-</section>
-
-      <a href="/?v=title-update" target="_blank" style={linkCard}>
-        <h2 style={sectionTitle}>🏯 Warrior Titles</h2>
-        <p style={text} className={cormorant.className}>
-          Honored roles and names carved into the hall.
+        <p style={oathText} className={cormorant.className}>
+          "{todayOath.text}"
         </p>
-        <b style={openText}>Enter Title Hall →</b>
-      </a>
 
-      
+        <div style={oathAuthor}>— {todayOath.author}</div>
+      </section>
 
-      <a href="https://lichess.org/training" target="_blank" style={linkCard}>
-        <h2 style={sectionTitle}>🧩 Tactics Dojo</h2>
-        <p style={text} className={cormorant.className}>
-          A silent training ground for sharper calculation.
+      <section style={compassCard}>
+        <div style={logBadge}>ASCENSION RECORD</div>
+
+        <h2 style={logTitle}>
+          ✦ ASCENDANT
+          <br />
+          COMPASS
+        </h2>
+
+        <div style={poseStage}>
+          <div style={seaLineOne} />
+          <div style={seaLineTwo} />
+
+          <div style={logPoseCircle}>
+            <div style={compassN}>N</div>
+            <div style={compassE}>E</div>
+            <div style={compassS}>S</div>
+            <div style={compassW}>W</div>
+
+            <div style={glassRing} />
+            <div style={innerRing} />
+            <div className="needle" />
+            <div style={needleCenter} />
+          </div>
+        </div>
+
+        <div className="waveBox">
+          <span className="wave">〜〜〜</span>
+          <span className="ship">✦</span>
+          <span className="wave">〜〜〜</span>
+        </div>
+
+        <div style={logInfoBox}>
+          <div style={logLabel}>Destination</div>
+
+          <div style={logValue} className={cormorant.className}>
+            Rise Above
+            <br />
+            Yesterday
+          </div>
+
+          <div style={divider} />
+
+          <div style={logLabel}>Direction</div>
+
+          <div style={logValue} className={cormorant.className}>
+            Always
+            <br />
+            Ascending
+          </div>
+        </div>
+
+        <p style={logFooter} className={cormorant.className}>
+          No summit is final.
+          <br />
+          There is always another step.
         </p>
-        <b style={openText}>Begin Training →</b>
-      </a>
+      </section>
 
       <section style={tribute} className={cormorant.className}>
-        🌸 Whispered_Blossom — the lantern remembers.
+        Never finished. Always rising.
       </section>
-      
 
       <style>{`
+        @keyframes goldPulse {
+          0%, 100% {
+            box-shadow:
+              0 0 10px rgba(214,179,106,.16),
+              inset 0 0 16px rgba(214,179,106,.04);
+          }
+
+          50% {
+            box-shadow:
+              0 0 18px rgba(214,179,106,.28),
+              inset 0 0 22px rgba(214,179,106,.07);
+          }
+        }
+
         @keyframes starPulse {
           0%, 100% { opacity: .35; transform: scale(1); }
-          50% { opacity: .95; transform: scale(1.25); }
+          50% { opacity: .9; transform: scale(1.22); }
         }
 
-        @keyframes petalFall {
-          0% { transform: translateY(-40px) translateX(0) rotate(0deg); opacity: 0; }
-          20% { opacity: .55; }
-          100% { transform: translateY(760px) translateX(28px) rotate(240deg); opacity: 0; }
-        }
-
-        @keyframes moonBreath {
-          0%, 100% { opacity: .5; transform: scale(1); }
-          50% { opacity: .82; transform: scale(1.06); }
+        @keyframes goldBreath {
+          0%, 100% { opacity: .45; transform: scale(1); }
+          50% { opacity: .72; transform: scale(1.06); }
         }
 
         @keyframes needleMove {
-          0% { transform: translate(-50%, -100%) rotate(-18deg); }
-          25% { transform: translate(-50%, -100%) rotate(13deg); }
-          55% { transform: translate(-50%, -100%) rotate(-7deg); }
+          0% { transform: translate(-50%, -100%) rotate(-15deg); }
+          25% { transform: translate(-50%, -100%) rotate(10deg); }
+          55% { transform: translate(-50%, -100%) rotate(-6deg); }
           80% { transform: translate(-50%, -100%) rotate(4deg); }
           100% { transform: translate(-50%, -100%) rotate(0deg); }
         }
 
-        @keyframes shipRock {
-          0%, 100% { transform: rotate(-4deg) translateY(1px); }
-          50% { transform: rotate(4deg) translateY(-2px); }
-        }
-
         @keyframes waveMove {
-          0%, 100% { transform: translateX(-6px); opacity: .65; }
-          50% { transform: translateX(6px); opacity: 1; }
+          0%, 100% { transform: translateX(-5px); opacity: .55; }
+          50% { transform: translateX(5px); opacity: .9; }
         }
 
         .star {
           position: absolute;
           z-index: 1;
-          color: #e0f2fe;
-          text-shadow: 0 0 12px rgba(186,230,253,.9);
-          animation: starPulse 4s ease-in-out infinite;
-        }
-
-        .petal {
-          position: absolute;
-          top: -35px;
-          z-index: 1;
-          font-size: 12px;
-          opacity: .55;
-          animation: petalFall 15s linear infinite;
+          color: #d6b36a;
+          text-shadow: 0 0 12px rgba(214,179,106,.55);
+          animation: starPulse 4.5s ease-in-out infinite;
         }
 
         .needle {
@@ -202,11 +186,11 @@ const todayOath = oaths[dayOfYear % oaths.length];
           top: 50%;
           width: 5px;
           height: 45px;
-          background: linear-gradient(180deg, #fff3b0, #facc15, #92400e);
+          background: linear-gradient(180deg, #fff1b8, #d6b36a, #6f4f1f);
           border-radius: 10px;
           transform-origin: 50% 100%;
-          animation: needleMove 4s infinite ease-in-out;
-          box-shadow: 0 0 14px rgba(250,204,21,.8);
+          animation: needleMove 4.5s infinite ease-in-out;
+          box-shadow: 0 0 14px rgba(214,179,106,.55);
           z-index: 5;
         }
 
@@ -216,9 +200,9 @@ const todayOath = oaths[dayOfYear % oaths.length];
           align-items: center;
           gap: 7px;
           margin: 8px 0 14px;
-          color: #93c5fd;
+          color: #b89146;
           font-size: 19px;
-          text-shadow: 0 0 10px rgba(125,211,252,.55);
+          text-shadow: 0 0 10px rgba(214,179,106,.28);
         }
 
         .wave {
@@ -227,8 +211,8 @@ const todayOath = oaths[dayOfYear % oaths.length];
         }
 
         .ship {
-          display: inline-block;
-          animation: shipRock 2.8s ease-in-out infinite;
+          color: #d6b36a;
+          text-shadow: 0 0 12px rgba(214,179,106,.5);
         }
       `}</style>
     </main>
@@ -243,67 +227,61 @@ const main = {
   margin: "0 auto",
   padding: "13px",
   overflow: "hidden",
-  color: "white",
+  color: "#f3e6c2",
   boxSizing: "border-box",
   background:
-    "linear-gradient(180deg, #020617 0%, #071426 42%, #020617 100%)",
+    "linear-gradient(180deg, #070604 0%, #11100d 42%, #070604 100%)",
 };
 
-const moonGlow = {
+const goldGlow = {
   position: "absolute",
-  top: "-70px",
-  right: "-62px",
-  width: "190px",
-  height: "190px",
+  top: "-80px",
+  right: "-65px",
+  width: "210px",
+  height: "210px",
   borderRadius: "50%",
   background:
-    "radial-gradient(circle, rgba(186,230,253,.48), rgba(56,189,248,.12), transparent 68%)",
-  animation: "moonBreath 7s ease-in-out infinite",
+    "radial-gradient(circle, rgba(214,179,106,.24), rgba(184,145,70,.08), transparent 68%)",
+  animation: "goldBreath 7s ease-in-out infinite",
   zIndex: 0,
 };
 
-const moonCore = {
+const goldCore = {
   position: "absolute",
-  top: "20px",
-  right: "28px",
-  fontSize: "42px",
-  color: "#e0f2fe",
-  opacity: 0.85,
+  top: "24px",
+  right: "32px",
+  fontSize: "34px",
+  color: "#d6b36a",
+  opacity: 0.8,
   zIndex: 1,
-  textShadow: "0 0 20px rgba(186,230,253,.8)",
-};
-
-const oceanGlow = {
-  position: "absolute",
-  bottom: "-110px",
-  left: "-80px",
-  width: "460px",
-  height: "230px",
-  background:
-    "radial-gradient(circle, rgba(14,165,233,.25), transparent 68%)",
-  zIndex: 0,
+  textShadow: "0 0 18px rgba(214,179,106,.5)",
 };
 
 const softMist = {
   position: "absolute",
   inset: 0,
   background:
-    "linear-gradient(120deg, transparent, rgba(125,211,252,.045), transparent)",
+    "linear-gradient(120deg, transparent, rgba(214,179,106,.04), transparent)",
   zIndex: 0,
 };
 
-const hero = {
+const card = {
   position: "relative",
   zIndex: 2,
-  textAlign: "center",
-  border: "1px solid rgba(147,197,253,.48)",
-  borderRadius: "24px",
-  padding: "18px 12px",
+  border: "1px solid rgba(214,179,106,.34)",
+  borderRadius: "18px",
+  padding: "14px",
   marginBottom: "14px",
   background:
-    "linear-gradient(180deg, rgba(15,23,42,.72), rgba(2,6,23,.82))",
-  boxShadow:
-    "0 0 18px rgba(56,189,248,.18), inset 0 0 18px rgba(96,165,250,.06)",
+    "linear-gradient(180deg, rgba(20,18,14,.84), rgba(8,7,5,.9))",
+  animation: "goldPulse 5.5s ease-in-out infinite",
+};
+
+const hero = {
+  ...card,
+  textAlign: "center",
+  borderRadius: "24px",
+  padding: "18px 12px",
 };
 
 const crest = {
@@ -313,42 +291,29 @@ const crest = {
   borderRadius: "50%",
   display: "grid",
   placeItems: "center",
-  fontSize: "29px",
-  color: "#e9d5ff",
+  fontSize: "28px",
+  color: "#f3e6c2",
   background:
-    "radial-gradient(circle, rgba(88,28,135,.72), rgba(15,23,42,.92))",
-  border: "1px solid rgba(216,180,254,.5)",
-  boxShadow: "0 0 20px rgba(168,85,247,.35)",
+    "radial-gradient(circle, rgba(214,179,106,.24), rgba(18,15,10,.96))",
+  border: "1px solid rgba(214,179,106,.45)",
+  boxShadow: "0 0 18px rgba(214,179,106,.24)",
 };
 
 const clubTitle = {
-  fontSize: "21px",
-  letterSpacing: "2.4px",
+  fontSize: "22px",
+  letterSpacing: "2.8px",
   margin: "6px 0",
-  color: "#e0f2fe",
-  textShadow: "0 0 12px rgba(56,189,248,.72)",
+  color: "#f3e6c2",
+  textShadow: "0 0 12px rgba(214,179,106,.38)",
   whiteSpace: "nowrap",
 };
 
 const heroLine = {
-  color: "#c7d2fe",
+  color: "#c9b07a",
   fontSize: "14px",
   lineHeight: "1.35",
   fontStyle: "italic",
   margin: "8px 0 0",
-};
-
-const card = {
-  position: "relative",
-  zIndex: 2,
-  border: "1px solid rgba(96,165,250,.42)",
-  borderRadius: "18px",
-  padding: "14px",
-  marginBottom: "14px",
-  background:
-    "linear-gradient(180deg, rgba(3,7,18,.72), rgba(15,23,42,.62))",
-  boxShadow:
-    "0 0 14px rgba(56,189,248,.15), inset 0 0 14px rgba(125,211,252,.04)",
 };
 
 const dateCard = {
@@ -358,32 +323,30 @@ const dateCard = {
 
 const label = {
   fontSize: "10px",
-  color: "#7dd3fc",
+  color: "#d6b36a",
   letterSpacing: "3px",
 };
 
 const dateDay = {
   fontSize: "20px",
-  color: "#f0f9ff",
+  color: "#f3e6c2",
   fontWeight: "bold",
   marginTop: "6px",
 };
 
 const dateMain = {
   fontSize: "15px",
-  color: "#bfdbfe",
+  color: "#c9b07a",
   marginTop: "4px",
 };
+
 const oathCard = {
   ...card,
   textAlign: "center",
-  border: "1px solid rgba(216,180,254,.35)",
-  background:
-    "linear-gradient(180deg, rgba(18,24,45,.85), rgba(5,10,20,.9))",
 };
 
 const oathText = {
-  color: "#f8fafc",
+  color: "#f3e6c2",
   fontSize: "17px",
   lineHeight: "1.5",
   fontStyle: "italic",
@@ -391,49 +354,38 @@ const oathText = {
 };
 
 const oathAuthor = {
-  color: "#7dd3fc",
+  color: "#d6b36a",
   marginTop: "12px",
   fontSize: "13px",
   letterSpacing: "1px",
 };
-const logPoseCard = {
+
+const compassCard = {
   ...card,
   textAlign: "center",
-  border: "1px solid rgba(125,211,252,.62)",
+  border: "1px solid rgba(214,179,106,.45)",
   background:
-    "linear-gradient(180deg, rgba(4,16,34,.88), rgba(8,36,61,.76), rgba(2,6,23,.9))",
-  boxShadow:
-    "0 0 20px rgba(14,165,233,.22), inset 0 0 24px rgba(125,211,252,.07)",
+    "linear-gradient(180deg, rgba(22,19,13,.9), rgba(12,10,7,.94))",
 };
 
-const logHeader = {
-  color: "#bae6fd",
-  fontSize: "12px",
-  letterSpacing: "1.8px",
+const logBadge = {
+  display: "inline-block",
+  padding: "4px 10px",
+  borderRadius: "999px",
+  border: "1px solid rgba(214,179,106,.42)",
+  color: "#d6b36a",
+  fontSize: "9px",
+  letterSpacing: "2px",
+  background: "rgba(214,179,106,.07)",
+  marginBottom: "8px",
 };
 
 const logTitle = {
   fontSize: "22px",
   letterSpacing: "2px",
   margin: "4px 0 12px",
-  color: "#f0f9ff",
-  textShadow: "0 0 14px rgba(56,189,248,.7)",
-};
-
-const logPoseWrap = {
-  display: "grid",
-  placeItems: "center",
-};
-const logBadge = {
-  display: "inline-block",
-  padding: "4px 10px",
-  borderRadius: "999px",
-  border: "1px solid rgba(125,211,252,.45)",
-  color: "#bae6fd",
-  fontSize: "9px",
-  letterSpacing: "2px",
-  background: "rgba(14,165,233,.08)",
-  marginBottom: "8px",
+  color: "#f3e6c2",
+  textShadow: "0 0 14px rgba(214,179,106,.32)",
 };
 
 const poseStage = {
@@ -451,7 +403,7 @@ const seaLineOne = {
   width: "140px",
   height: "36px",
   borderRadius: "50%",
-  borderTop: "1px solid rgba(125,211,252,.45)",
+  borderTop: "1px solid rgba(214,179,106,.34)",
   opacity: 0.8,
 };
 
@@ -461,7 +413,7 @@ const seaLineTwo = {
   width: "170px",
   height: "42px",
   borderRadius: "50%",
-  borderTop: "1px solid rgba(147,197,253,.25)",
+  borderTop: "1px solid rgba(214,179,106,.18)",
   opacity: 0.7,
 };
 
@@ -469,32 +421,32 @@ const logPoseCircle = {
   width: "118px",
   height: "118px",
   margin: "0 auto",
-  border: "3px solid rgba(186,230,253,.95)",
+  border: "3px solid rgba(214,179,106,.78)",
   borderRadius: "50%",
   position: "relative",
   background:
-    "radial-gradient(circle at 35% 30%, rgba(255,255,255,.26), rgba(14,165,233,.12), rgba(2,6,23,.88))",
+    "radial-gradient(circle at 35% 30%, rgba(255,241,184,.18), rgba(214,179,106,.1), rgba(8,7,5,.9))",
   boxShadow:
-    "0 0 28px rgba(125,211,252,.55), inset 0 0 22px rgba(255,255,255,.09)",
+    "0 0 24px rgba(214,179,106,.28), inset 0 0 20px rgba(255,255,255,.05)",
 };
 
 const glassRing = {
   position: "absolute",
   inset: "7px",
   borderRadius: "50%",
-  border: "1px solid rgba(255,255,255,.18)",
+  border: "1px solid rgba(255,255,255,.12)",
 };
 
 const innerRing = {
   position: "absolute",
   inset: "19px",
-  border: "1px solid rgba(186,230,253,.32)",
+  border: "1px solid rgba(214,179,106,.26)",
   borderRadius: "50%",
 };
 
 const compassBase = {
   position: "absolute",
-  color: "#bae6fd",
+  color: "#d6b36a",
   fontSize: "10px",
   fontWeight: "bold",
 };
@@ -533,23 +485,23 @@ const needleCenter = {
   top: "50%",
   width: "13px",
   height: "13px",
-  background: "#ffffff",
+  background: "#fff8df",
   borderRadius: "50%",
   transform: "translate(-50%, -50%)",
-  boxShadow: "0 0 9px white",
+  boxShadow: "0 0 9px rgba(255,248,223,.85)",
   zIndex: 6,
 };
 
 const logInfoBox = {
-  background: "rgba(255,255,255,.045)",
-  border: "1px solid rgba(125,211,252,.34)",
+  background: "rgba(214,179,106,.045)",
+  border: "1px solid rgba(214,179,106,.28)",
   borderRadius: "16px",
   padding: "12px 8px",
   margin: "8px 0",
 };
 
 const logLabel = {
-  color: "#7dd3fc",
+  color: "#d6b36a",
   fontSize: "11px",
   fontWeight: "bold",
   letterSpacing: "1.5px",
@@ -557,7 +509,7 @@ const logLabel = {
 };
 
 const logValue = {
-  color: "#f8fafc",
+  color: "#f3e6c2",
   fontSize: "19px",
   lineHeight: "1.2",
   margin: "7px 0 10px",
@@ -569,42 +521,15 @@ const divider = {
   width: "70%",
   margin: "10px auto",
   background:
-    "linear-gradient(90deg, transparent, rgba(125,211,252,.45), transparent)",
+    "linear-gradient(90deg, transparent, rgba(214,179,106,.38), transparent)",
 };
 
 const logFooter = {
-  color: "#bae6fd",
+  color: "#c9b07a",
   fontSize: "14px",
   lineHeight: "1.35",
   fontStyle: "italic",
   margin: "10px 0 0",
-};
-
-const linkCard = {
-  ...card,
-  display: "block",
-  color: "white",
-  textDecoration: "none",
-  textAlign: "center",
-};
-
-const sectionTitle = {
-  textAlign: "center",
-  fontSize: "18px",
-  margin: "0 0 6px",
-  color: "#e0f2fe",
-  letterSpacing: "1px",
-};
-
-const text = {
-  color: "#c7d2fe",
-  fontSize: "15px",
-  lineHeight: "1.35",
-};
-
-const openText = {
-  color: "#7dd3fc",
-  fontSize: "13px",
 };
 
 const tribute = {
@@ -612,7 +537,7 @@ const tribute = {
   zIndex: 2,
   textAlign: "center",
   fontSize: "14px",
-  color: "#c7d2fe",
+  color: "#c9b07a",
   opacity: 0.95,
   padding: "4px 4px 10px",
   fontStyle: "italic",
