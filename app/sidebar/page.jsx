@@ -13,8 +13,7 @@ export default function Sidebar() {
   const today = new Date();
 
   const dayOfYear = Math.floor(
-    (today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) /
-      86400000
+    (today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000
   );
 
   const todayOath = oaths[dayOfYear % oaths.length];
@@ -33,16 +32,19 @@ export default function Sidebar() {
 
   return (
     <main style={main} className={cinzel.className}>
-      <div style={goldCore}>✦</div>
-      <div style={goldGlow} />
-      <div style={softMist} />
+      <div style={mistOne} />
+      <div style={mistTwo} />
+      <div style={windMark}>⌁</div>
 
-      <span className="star" style={{ top: "90px", left: "42px" }}>✦</span>
-      <span className="star" style={{ top: "210px", right: "36px", animationDelay: "1.5s" }}>✧</span>
-      <span className="star" style={{ top: "420px", left: "28px", animationDelay: ".7s" }}>✦</span>
+      <span className="particle" style={{ top: "70px", left: "34px" }}>✦</span>
+      <span className="particle" style={{ top: "210px", right: "34px", animationDelay: "1.5s" }}>✧</span>
+      <span className="particle" style={{ top: "420px", left: "26px", animationDelay: ".8s" }}>✦</span>
+      <span className="particle" style={{ top: "620px", right: "45px", animationDelay: "2.4s" }}>✧</span>
 
-      <section style={hero}>
-        <div style={crest}>升</div>
+      <section style={hero} className="goldCard">
+        <div style={crestWrap}>
+          <div style={crestInner}>A</div>
+        </div>
 
         <h1 style={clubTitle}>ASCENDANT</h1>
 
@@ -51,17 +53,15 @@ export default function Sidebar() {
         </p>
       </section>
 
-      <section style={dateCard}>
+      <section style={dateCard} className="goldCard">
         <div style={label}>ASCENSION LOG</div>
-
         <div style={dateDay}>{dayName}</div>
-
         <div style={dateMain} className={cormorant.className}>
           {dateLine}
         </div>
       </section>
 
-      <section style={oathCard}>
+      <section style={oathCard} className="goldCard">
         <div style={label}>📜 TODAY'S OATH</div>
 
         <p style={oathText} className={cormorant.className}>
@@ -71,7 +71,7 @@ export default function Sidebar() {
         <div style={oathAuthor}>— {todayOath.author}</div>
       </section>
 
-      <section style={compassCard}>
+      <section style={compassCard} className="goldCard">
         <div style={logBadge}>ASCENSION RECORD</div>
 
         <h2 style={logTitle}>
@@ -84,7 +84,7 @@ export default function Sidebar() {
           <div style={seaLineOne} />
           <div style={seaLineTwo} />
 
-          <div style={logPoseCircle}>
+          <div style={compassCircle}>
             <div style={compassN}>N</div>
             <div style={compassE}>E</div>
             <div style={compassS}>S</div>
@@ -93,7 +93,7 @@ export default function Sidebar() {
             <div style={glassRing} />
             <div style={innerRing} />
             <div className="needle" />
-            <div style={needleCenter} />
+            <div className="centerOrb" />
           </div>
         </div>
 
@@ -105,7 +105,6 @@ export default function Sidebar() {
 
         <div style={logInfoBox}>
           <div style={logLabel}>Destination</div>
-
           <div style={logValue} className={cormorant.className}>
             Rise Above
             <br />
@@ -115,7 +114,6 @@ export default function Sidebar() {
           <div style={divider} />
 
           <div style={logLabel}>Direction</div>
-
           <div style={logValue} className={cormorant.className}>
             Always
             <br />
@@ -137,34 +135,41 @@ export default function Sidebar() {
       <style>{`
         @keyframes goldPulse {
           0%, 100% {
-            box-shadow:
-              0 0 10px rgba(214,179,106,.16),
-              inset 0 0 16px rgba(214,179,106,.04);
+            box-shadow: 0 0 10px rgba(217,182,109,.14), inset 0 0 18px rgba(217,182,109,.035);
           }
-
           50% {
-            box-shadow:
-              0 0 18px rgba(214,179,106,.28),
-              inset 0 0 22px rgba(214,179,106,.07);
+            box-shadow: 0 0 20px rgba(217,182,109,.26), inset 0 0 24px rgba(217,182,109,.06);
           }
         }
 
-        @keyframes starPulse {
-          0%, 100% { opacity: .35; transform: scale(1); }
-          50% { opacity: .9; transform: scale(1.22); }
+        @keyframes shimmerSweep {
+          0% { transform: translateX(-140%) skewX(-18deg); opacity: 0; }
+          12% { opacity: .35; }
+          25% { transform: translateX(140%) skewX(-18deg); opacity: 0; }
+          100% { transform: translateX(140%) skewX(-18deg); opacity: 0; }
         }
 
-        @keyframes goldBreath {
-          0%, 100% { opacity: .45; transform: scale(1); }
-          50% { opacity: .72; transform: scale(1.06); }
+        @keyframes mistMove {
+          0%, 100% { transform: translateX(-20px) translateY(0) scale(1); opacity: .08; }
+          50% { transform: translateX(20px) translateY(-18px) scale(1.08); opacity: .14; }
+        }
+
+        @keyframes particlePulse {
+          0%, 100% { opacity: .25; transform: scale(1); }
+          50% { opacity: .85; transform: scale(1.2); }
         }
 
         @keyframes needleMove {
-          0% { transform: translate(-50%, -100%) rotate(-15deg); }
+          0% { transform: translate(-50%, -100%) rotate(-14deg); }
           25% { transform: translate(-50%, -100%) rotate(10deg); }
-          55% { transform: translate(-50%, -100%) rotate(-6deg); }
+          55% { transform: translate(-50%, -100%) rotate(-5deg); }
           80% { transform: translate(-50%, -100%) rotate(4deg); }
           100% { transform: translate(-50%, -100%) rotate(0deg); }
+        }
+
+        @keyframes orbPulse {
+          0%, 100% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 10px rgba(217,182,109,.65); }
+          50% { transform: translate(-50%, -50%) scale(1.12); box-shadow: 0 0 18px rgba(217,182,109,.9); }
         }
 
         @keyframes waveMove {
@@ -172,12 +177,29 @@ export default function Sidebar() {
           50% { transform: translateX(5px); opacity: .9; }
         }
 
-        .star {
+        .goldCard {
+          overflow: hidden;
+          animation: goldPulse 6s ease-in-out infinite;
+        }
+
+        .goldCard::after {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 42%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255,232,170,.13), transparent);
+          animation: shimmerSweep 9s ease-in-out infinite;
+          pointer-events: none;
+        }
+
+        .particle {
           position: absolute;
           z-index: 1;
-          color: #d6b36a;
-          text-shadow: 0 0 12px rgba(214,179,106,.55);
-          animation: starPulse 4.5s ease-in-out infinite;
+          color: #d9b66d;
+          text-shadow: 0 0 12px rgba(217,182,109,.5);
+          animation: particlePulse 4.5s ease-in-out infinite;
         }
 
         .needle {
@@ -186,12 +208,25 @@ export default function Sidebar() {
           top: 50%;
           width: 5px;
           height: 45px;
-          background: linear-gradient(180deg, #fff1b8, #d6b36a, #6f4f1f);
+          background: linear-gradient(180deg, #fff1bd, #d9b66d, #6a4a20);
           border-radius: 10px;
           transform-origin: 50% 100%;
           animation: needleMove 4.5s infinite ease-in-out;
-          box-shadow: 0 0 14px rgba(214,179,106,.55);
+          box-shadow: 0 0 14px rgba(217,182,109,.55);
           z-index: 5;
+        }
+
+        .centerOrb {
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          width: 15px;
+          height: 15px;
+          border-radius: 50%;
+          background: radial-gradient(circle, #fff1bd, #d9b66d 55%, #6a4a20);
+          transform: translate(-50%, -50%);
+          animation: orbPulse 3.8s ease-in-out infinite;
+          z-index: 6;
         }
 
         .waveBox {
@@ -202,7 +237,7 @@ export default function Sidebar() {
           margin: 8px 0 14px;
           color: #b89146;
           font-size: 19px;
-          text-shadow: 0 0 10px rgba(214,179,106,.28);
+          text-shadow: 0 0 10px rgba(217,182,109,.25);
         }
 
         .wave {
@@ -211,8 +246,8 @@ export default function Sidebar() {
         }
 
         .ship {
-          color: #d6b36a;
-          text-shadow: 0 0 12px rgba(214,179,106,.5);
+          color: #d9b66d;
+          text-shadow: 0 0 12px rgba(217,182,109,.5);
         }
       `}</style>
     </main>
@@ -227,54 +262,57 @@ const main = {
   margin: "0 auto",
   padding: "13px",
   overflow: "hidden",
-  color: "#f3e6c2",
+  color: "#f2e4bc",
   boxSizing: "border-box",
   background:
-    "linear-gradient(180deg, #070604 0%, #11100d 42%, #070604 100%)",
+    "radial-gradient(circle at top, rgba(217,182,109,.06), transparent 34%), linear-gradient(180deg, #050403 0%, #0b0907 42%, #050403 100%)",
 };
 
-const goldGlow = {
+const mistOne = {
   position: "absolute",
-  top: "-80px",
-  right: "-65px",
-  width: "210px",
-  height: "210px",
+  top: "70px",
+  left: "-80px",
+  width: "280px",
+  height: "280px",
   borderRadius: "50%",
-  background:
-    "radial-gradient(circle, rgba(214,179,106,.24), rgba(184,145,70,.08), transparent 68%)",
-  animation: "goldBreath 7s ease-in-out infinite",
+  background: "radial-gradient(circle, rgba(217,182,109,.12), transparent 68%)",
+  filter: "blur(30px)",
+  animation: "mistMove 14s ease-in-out infinite",
   zIndex: 0,
 };
 
-const goldCore = {
+const mistTwo = {
   position: "absolute",
-  top: "24px",
-  right: "32px",
-  fontSize: "34px",
-  color: "#d6b36a",
-  opacity: 0.8,
-  zIndex: 1,
-  textShadow: "0 0 18px rgba(214,179,106,.5)",
+  bottom: "140px",
+  right: "-90px",
+  width: "310px",
+  height: "310px",
+  borderRadius: "50%",
+  background: "radial-gradient(circle, rgba(156,114,53,.14), transparent 70%)",
+  filter: "blur(36px)",
+  animation: "mistMove 18s ease-in-out infinite reverse",
+  zIndex: 0,
 };
 
-const softMist = {
+const windMark = {
   position: "absolute",
-  inset: 0,
-  background:
-    "linear-gradient(120deg, transparent, rgba(214,179,106,.04), transparent)",
+  top: "230px",
+  left: "50%",
+  transform: "translateX(-50%)",
+  fontSize: "210px",
+  color: "rgba(217,182,109,.055)",
   zIndex: 0,
+  pointerEvents: "none",
 };
 
 const card = {
   position: "relative",
   zIndex: 2,
-  border: "1px solid rgba(214,179,106,.34)",
+  border: "1px solid rgba(217,182,109,.34)",
   borderRadius: "18px",
   padding: "14px",
   marginBottom: "14px",
-  background:
-    "linear-gradient(180deg, rgba(20,18,14,.84), rgba(8,7,5,.9))",
-  animation: "goldPulse 5.5s ease-in-out infinite",
+  background: "linear-gradient(180deg, rgba(22,19,13,.86), rgba(8,7,5,.93))",
 };
 
 const hero = {
@@ -284,27 +322,38 @@ const hero = {
   padding: "18px 12px",
 };
 
-const crest = {
-  width: "56px",
-  height: "56px",
+const crestWrap = {
+  width: "68px",
+  height: "68px",
   margin: "0 auto 10px",
   borderRadius: "50%",
   display: "grid",
   placeItems: "center",
+  background: "radial-gradient(circle, rgba(217,182,109,.24), rgba(8,7,5,.96))",
+  border: "1px solid rgba(217,182,109,.52)",
+  boxShadow: "0 0 22px rgba(217,182,109,.25)",
+};
+
+const crestInner = {
+  width: "48px",
+  height: "48px",
+  borderRadius: "50%",
+  display: "grid",
+  placeItems: "center",
+  color: "#f2e4bc",
   fontSize: "28px",
-  color: "#f3e6c2",
-  background:
-    "radial-gradient(circle, rgba(214,179,106,.24), rgba(18,15,10,.96))",
-  border: "1px solid rgba(214,179,106,.45)",
-  boxShadow: "0 0 18px rgba(214,179,106,.24)",
+  fontWeight: "700",
+  letterSpacing: "1px",
+  border: "1px solid rgba(217,182,109,.35)",
+  textShadow: "0 0 12px rgba(217,182,109,.55)",
 };
 
 const clubTitle = {
   fontSize: "22px",
   letterSpacing: "2.8px",
   margin: "6px 0",
-  color: "#f3e6c2",
-  textShadow: "0 0 12px rgba(214,179,106,.38)",
+  color: "#f2e4bc",
+  textShadow: "0 0 12px rgba(217,182,109,.38)",
   whiteSpace: "nowrap",
 };
 
@@ -323,13 +372,13 @@ const dateCard = {
 
 const label = {
   fontSize: "10px",
-  color: "#d6b36a",
+  color: "#d9b66d",
   letterSpacing: "3px",
 };
 
 const dateDay = {
   fontSize: "20px",
-  color: "#f3e6c2",
+  color: "#f2e4bc",
   fontWeight: "bold",
   marginTop: "6px",
 };
@@ -346,7 +395,7 @@ const oathCard = {
 };
 
 const oathText = {
-  color: "#f3e6c2",
+  color: "#f2e4bc",
   fontSize: "17px",
   lineHeight: "1.5",
   fontStyle: "italic",
@@ -354,7 +403,7 @@ const oathText = {
 };
 
 const oathAuthor = {
-  color: "#d6b36a",
+  color: "#d9b66d",
   marginTop: "12px",
   fontSize: "13px",
   letterSpacing: "1px",
@@ -363,20 +412,19 @@ const oathAuthor = {
 const compassCard = {
   ...card,
   textAlign: "center",
-  border: "1px solid rgba(214,179,106,.45)",
-  background:
-    "linear-gradient(180deg, rgba(22,19,13,.9), rgba(12,10,7,.94))",
+  border: "1px solid rgba(217,182,109,.45)",
+  background: "linear-gradient(180deg, rgba(24,21,15,.9), rgba(10,8,5,.95))",
 };
 
 const logBadge = {
   display: "inline-block",
   padding: "4px 10px",
   borderRadius: "999px",
-  border: "1px solid rgba(214,179,106,.42)",
-  color: "#d6b36a",
+  border: "1px solid rgba(217,182,109,.42)",
+  color: "#d9b66d",
   fontSize: "9px",
   letterSpacing: "2px",
-  background: "rgba(214,179,106,.07)",
+  background: "rgba(217,182,109,.07)",
   marginBottom: "8px",
 };
 
@@ -384,8 +432,8 @@ const logTitle = {
   fontSize: "22px",
   letterSpacing: "2px",
   margin: "4px 0 12px",
-  color: "#f3e6c2",
-  textShadow: "0 0 14px rgba(214,179,106,.32)",
+  color: "#f2e4bc",
+  textShadow: "0 0 14px rgba(217,182,109,.32)",
 };
 
 const poseStage = {
@@ -403,7 +451,7 @@ const seaLineOne = {
   width: "140px",
   height: "36px",
   borderRadius: "50%",
-  borderTop: "1px solid rgba(214,179,106,.34)",
+  borderTop: "1px solid rgba(217,182,109,.34)",
   opacity: 0.8,
 };
 
@@ -413,21 +461,20 @@ const seaLineTwo = {
   width: "170px",
   height: "42px",
   borderRadius: "50%",
-  borderTop: "1px solid rgba(214,179,106,.18)",
+  borderTop: "1px solid rgba(217,182,109,.18)",
   opacity: 0.7,
 };
 
-const logPoseCircle = {
+const compassCircle = {
   width: "118px",
   height: "118px",
   margin: "0 auto",
-  border: "3px solid rgba(214,179,106,.78)",
+  border: "3px solid rgba(217,182,109,.78)",
   borderRadius: "50%",
   position: "relative",
   background:
-    "radial-gradient(circle at 35% 30%, rgba(255,241,184,.18), rgba(214,179,106,.1), rgba(8,7,5,.9))",
-  boxShadow:
-    "0 0 24px rgba(214,179,106,.28), inset 0 0 20px rgba(255,255,255,.05)",
+    "radial-gradient(circle at 35% 30%, rgba(255,241,189,.17), rgba(217,182,109,.1), rgba(8,7,5,.9))",
+  boxShadow: "0 0 24px rgba(217,182,109,.28), inset 0 0 20px rgba(255,255,255,.05)",
 };
 
 const glassRing = {
@@ -440,13 +487,13 @@ const glassRing = {
 const innerRing = {
   position: "absolute",
   inset: "19px",
-  border: "1px solid rgba(214,179,106,.26)",
+  border: "1px solid rgba(217,182,109,.26)",
   borderRadius: "50%",
 };
 
 const compassBase = {
   position: "absolute",
-  color: "#d6b36a",
+  color: "#d9b66d",
   fontSize: "10px",
   fontWeight: "bold",
 };
@@ -479,29 +526,16 @@ const compassW = {
   transform: "translateY(-50%)",
 };
 
-const needleCenter = {
-  position: "absolute",
-  left: "50%",
-  top: "50%",
-  width: "13px",
-  height: "13px",
-  background: "#fff8df",
-  borderRadius: "50%",
-  transform: "translate(-50%, -50%)",
-  boxShadow: "0 0 9px rgba(255,248,223,.85)",
-  zIndex: 6,
-};
-
 const logInfoBox = {
-  background: "rgba(214,179,106,.045)",
-  border: "1px solid rgba(214,179,106,.28)",
+  background: "rgba(217,182,109,.045)",
+  border: "1px solid rgba(217,182,109,.28)",
   borderRadius: "16px",
   padding: "12px 8px",
   margin: "8px 0",
 };
 
 const logLabel = {
-  color: "#d6b36a",
+  color: "#d9b66d",
   fontSize: "11px",
   fontWeight: "bold",
   letterSpacing: "1.5px",
@@ -509,7 +543,7 @@ const logLabel = {
 };
 
 const logValue = {
-  color: "#f3e6c2",
+  color: "#f2e4bc",
   fontSize: "19px",
   lineHeight: "1.2",
   margin: "7px 0 10px",
@@ -520,8 +554,7 @@ const divider = {
   height: "1px",
   width: "70%",
   margin: "10px auto",
-  background:
-    "linear-gradient(90deg, transparent, rgba(214,179,106,.38), transparent)",
+  background: "linear-gradient(90deg, transparent, rgba(217,182,109,.38), transparent)",
 };
 
 const logFooter = {
